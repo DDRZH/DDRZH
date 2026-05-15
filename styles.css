@@ -344,6 +344,15 @@ h3 {
   letter-spacing: 0;
 }
 
+.intro-section h2,
+.contact-section h2 {
+  line-height: 1.12;
+}
+
+.contact-section p {
+  line-height: 1.7;
+}
+
 .intro-copy,
 .section-heading > p,
 .section-lede,
@@ -458,8 +467,9 @@ h3 {
 
 .pipeline-step {
   display: grid;
-  grid-template-columns: 46px 1fr;
+  grid-template-columns: 46px minmax(145px, 0.8fr) minmax(220px, 1.2fr);
   gap: 14px;
+  align-items: center;
   padding: 18px;
   background: var(--surface-strong);
 }
@@ -476,9 +486,10 @@ h3 {
 
 .pipeline-step small {
   display: block;
-  margin-top: 5px;
+  margin-top: 0;
   color: var(--muted);
   font-size: 0.92rem;
+  line-height: 1.35;
 }
 
 .results-section {
@@ -664,6 +675,8 @@ h3 {
 
 .contact-card strong {
   font-size: clamp(1.18rem, 2vw, 1.65rem);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .contact-card a:hover,
