@@ -338,13 +338,10 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-if (
-  canvas &&
-  !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
-  !window.matchMedia("(max-width: 700px)").matches
-) {
+if (canvas && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   const context = canvas.getContext("2d");
   const nodes = [];
+  const isStaticHeroCanvas = window.matchMedia("(max-width: 700px)").matches;
   let width = 0;
   let height = 0;
   let deviceRatio = 1;
@@ -359,10 +356,10 @@ if (
     context.setTransform(deviceRatio, 0, 0, deviceRatio, 0, 0);
 
     nodes.length = 0;
-    const totalNodes = width < 700 ? 32 : 56;
+    const totalNodes = isStaticHeroCanvas ? 28 : 56;
     for (let index = 0; index < totalNodes; index += 1) {
       nodes.push({
-        x: width * (0.42 + Math.random() * 0.56),
+        x: width * (isStaticHeroCanvas ? 0.24 + Math.random() * 0.72 : 0.42 + Math.random() * 0.56),
         y: height * (0.08 + Math.random() * 0.84),
         vx: (Math.random() - 0.5) * 0.18,
         vy: (Math.random() - 0.5) * 0.18,
@@ -415,8 +412,8 @@ if (
     context.clearRect(0, 0, width, height);
 
     const pulse = (Math.sin(time * 0.0013) + 1) / 2;
-    const panelWidth = Math.min(260, width * 0.28);
-    const panelX = width * 0.62;
+    const panelWidth = isStaticHeroCanvas ? Math.min(210, width * 0.58) : Math.min(260, width * 0.28);
+    const panelX = isStaticHeroCanvas ? width * 0.38 : width * 0.62;
 
     drawPanel(panelX, height * 0.19, panelWidth, 92, "Customer behaviour", 0.52 + pulse * 0.28);
     drawPanel(panelX + 46, height * 0.43, panelWidth, 92, "Workflow automation", 0.68 - pulse * 0.2);
@@ -451,10 +448,16 @@ if (
       context.fill();
     });
 
-    requestAnimationFrame(draw);
+    if (!isStaticHeroCanvas) {
+      requestAnimationFrame(draw);
+    }
   };
 
   resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
-  requestAnimationFrame(draw);
+  if (isStaticHeroCanvas) {
+    draw(1200);
+  } else {
+    window.addEventListener("resize", resizeCanvas);
+    requestAnimationFrame(draw);
+  }
 }
