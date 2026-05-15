@@ -1167,12 +1167,24 @@ h3 {
 
 @media (max-width: 560px) {
   .hero {
-    min-height: 86svh;
+    min-height: auto;
+    background:
+      radial-gradient(circle at 82% 18%, rgba(215, 255, 106, 0.16), transparent 28%),
+      radial-gradient(circle at 92% 82%, rgba(0, 127, 120, 0.22), transparent 36%),
+      linear-gradient(145deg, #071211 0%, #0b2522 58%, #071211 100%);
+  }
+
+  .hero-canvas {
+    display: none;
+  }
+
+  .hero-scrim {
+    background: linear-gradient(180deg, rgba(7, 18, 17, 0.94) 0%, rgba(7, 18, 17, 0.78) 54%, rgba(7, 18, 17, 0.96) 100%);
   }
 
   .hero-inner {
     padding-top: 88px;
-    padding-bottom: 32px;
+    padding-bottom: 40px;
   }
 
   .hero h1 {

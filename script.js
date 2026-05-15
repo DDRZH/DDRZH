@@ -338,7 +338,11 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-if (canvas && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+if (
+  canvas &&
+  !window.matchMedia("(prefers-reduced-motion: reduce)").matches &&
+  !window.matchMedia("(max-width: 700px)").matches
+) {
   const context = canvas.getContext("2d");
   const nodes = [];
   let width = 0;
