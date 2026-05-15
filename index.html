@@ -356,13 +356,19 @@
           <span data-wizard-label>Your answer</span>
           <textarea name="answer" rows="6" data-wizard-input required></textarea>
         </label>
+        <label class="wizard-honeypot" aria-hidden="true" tabindex="-1">
+          Website
+          <input type="text" name="website" autocomplete="off" tabindex="-1" data-wizard-honeypot />
+        </label>
         <div class="wizard-actions">
           <button class="button button-secondary wizard-back" type="button" data-wizard-back disabled>Back</button>
           <button class="button button-primary" type="button" data-wizard-next>Next</button>
         </div>
+        <p class="wizard-status" data-wizard-status aria-live="polite"></p>
       </form>
     </section>
 
+    <script src="emailjs-config.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
