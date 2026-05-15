@@ -577,7 +577,7 @@ h3 {
   max-width: 760px;
   margin-top: 12px;
   font-size: clamp(1.8rem, 3.6vw, 3.4rem);
-  line-height: 1.04;
+  line-height: 1.16;
 }
 
 .trial-section p {
