@@ -22,6 +22,13 @@ const emailJsConfig = window.DDRZH_EMAILJS_CONFIG || {};
 const EMAILJS_SEND_URL = "https://api.emailjs.com/api/v1.0/email/send";
 const MINIMUM_FORM_TIME_MS = 6000;
 const SEND_THROTTLE_MS = 120000;
+const i18n = window.DDRZH_I18N;
+const translateText = (text) => i18n?.translate(text) || text;
+const formatText = (text, values) =>
+  Object.entries(values).reduce(
+    (message, [key, value]) => message.replace(`{${key}}`, String(value)),
+    translateText(text)
+  );
 
 const safeStorage = {
   get(key) {
@@ -97,16 +104,19 @@ const saveCurrentAnswer = () => {
 
 const renderWizardStep = () => {
   const current = projectQuestions[wizardStep];
-  wizardProgress.textContent = `Question ${wizardStep + 1} of ${projectQuestions.length}`;
-  wizardQuestion.textContent = current.question;
-  wizardHelp.textContent = current.help;
-  wizardLabel.textContent = current.label;
+  wizardProgress.textContent = formatText("Question {current} of {total}", {
+    current: wizardStep + 1,
+    total: projectQuestions.length
+  });
+  wizardQuestion.textContent = translateText(current.question);
+  wizardHelp.textContent = translateText(current.help);
+  wizardLabel.textContent = translateText(current.label);
   wizardInput.value = projectAnswers[wizardStep] || "";
   wizardInput.inputMode = current.type === "email" ? "email" : "text";
   wizardInput.placeholder = current.type === "email" ? "you@example.com" : "";
   wizardInput.setCustomValidity("");
   wizardBack.disabled = wizardStep === 0;
-  wizardNext.textContent = wizardStep === projectQuestions.length - 1 ? "Send enquiry" : "Next";
+  wizardNext.textContent = translateText(wizardStep === projectQuestions.length - 1 ? "Send enquiry" : "Next");
   wizardNext.disabled = false;
   setWizardStatus("");
   wizardInput.focus();
@@ -138,13 +148,13 @@ const isCurrentAnswerValid = () => {
   const value = wizardInput.value.trim();
 
   if (!value) {
-    wizardInput.setCustomValidity("Please answer this question before continuing.");
+    wizardInput.setCustomValidity(translateText("Please answer this question before continuing."));
     wizardInput.reportValidity();
     return false;
   }
 
   if (current.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-    wizardInput.setCustomValidity("Please enter a valid email address.");
+    wizardInput.setCustomValidity(translateText("Please enter a valid email address."));
     wizardInput.reportValidity();
     return false;
   }
@@ -180,10 +190,10 @@ const isLikelyAutomatedSubmission = () => {
 
 const buildProjectEnquiry = () => {
   const body = projectQuestions
-    .map((item, index) => `${item.label}:\n${projectAnswers[index] || ""}`)
+    .map((item, index) => `${translateText(item.label)}:\n${projectAnswers[index] || ""}`)
     .join("\n\n");
   const name = projectAnswers[1] ? ` from ${projectAnswers[1]}` : "";
-  const subject = `Project enquiry${name}`;
+  const subject = `${translateText("Project enquiry")}${name}`;
   return { body, subject };
 };
 
@@ -191,23 +201,23 @@ const sendProjectEnquiry = async () => {
   const enquiry = buildProjectEnquiry();
 
   if (!isEmailJsConfigured()) {
-    setWizardStatus("The contact form is not configured yet. Please try again later.", "error");
+    setWizardStatus(translateText("The contact form is not configured yet. Please try again later."), "error");
     return false;
   }
 
   if (isLikelyAutomatedSubmission()) {
-    setWizardStatus("Please wait a moment, then try sending again.", "error");
+    setWizardStatus(translateText("Please wait a moment, then try sending again."), "error");
     return false;
   }
 
   if (!canSendAgain()) {
-    setWizardStatus("Your enquiry was just sent. Please wait before sending another one.", "error");
+    setWizardStatus(translateText("Your enquiry was just sent. Please wait before sending another one."), "error");
     return false;
   }
 
   wizardNext.disabled = true;
-  wizardNext.textContent = "Sending...";
-  setWizardStatus("Sending your enquiry...", "pending");
+  wizardNext.textContent = translateText("Sending...");
+  setWizardStatus(translateText("Sending your enquiry..."), "pending");
 
   try {
     const response = await fetch(EMAILJS_SEND_URL, {
@@ -221,7 +231,7 @@ const sendProjectEnquiry = async () => {
         user_id: emailJsConfig.publicKey,
         template_params: {
           to_email: emailJsConfig.toEmail || "info@ddrzh.com",
-          from_name: projectAnswers[1] || "Website visitor",
+          from_name: projectAnswers[1] || translateText("Website visitor"),
           from_email: projectAnswers[2] || "",
           reply_to: projectAnswers[2] || "",
           project_goal: projectAnswers[0] || "",
@@ -240,18 +250,18 @@ const sendProjectEnquiry = async () => {
     }
 
     safeStorage.set("ddrzh-last-enquiry-at", String(Date.now()));
-    setWizardStatus("Enquiry sent. DDRZH will contact you by email.", "success");
-    wizardNext.textContent = "Sent";
+    setWizardStatus(translateText("Enquiry sent. DDRZH will contact you by email."), "success");
+    wizardNext.textContent = translateText("Sent");
     return true;
   } catch (error) {
     const details = [error?.status, error?.text].filter(Boolean).join(": ");
     const message = details
-      ? `Sending failed (${details}). Please try again in a few minutes.`
-      : "Sending failed. Please try again in a few minutes.";
+      ? `${translateText("Sending failed")} (${details}). ${translateText("Please try again in a few minutes.")}`
+      : translateText("Sending failed. Please try again in a few minutes.");
     console.error("EmailJS send failed", error);
     setWizardStatus(message, "error");
     wizardNext.disabled = false;
-    wizardNext.textContent = "Send enquiry";
+    wizardNext.textContent = translateText("Send enquiry");
     return false;
   }
 };
@@ -330,6 +340,12 @@ wizardForm?.addEventListener("submit", (event) => {
 
 wizardCloseButtons.forEach((button) => {
   button.addEventListener("click", closeWizard);
+});
+
+i18n?.onChange(() => {
+  if (wizard?.classList.contains("is-open")) {
+    renderWizardStep();
+  }
 });
 
 document.addEventListener("keydown", (event) => {
@@ -415,9 +431,9 @@ if (canvas && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     const panelWidth = isStaticHeroCanvas ? Math.min(210, width * 0.58) : Math.min(260, width * 0.28);
     const panelX = isStaticHeroCanvas ? width * 0.38 : width * 0.62;
 
-    drawPanel(panelX, height * 0.19, panelWidth, 92, "Customer behaviour", 0.52 + pulse * 0.28);
-    drawPanel(panelX + 46, height * 0.43, panelWidth, 92, "Workflow automation", 0.68 - pulse * 0.2);
-    drawPanel(panelX - 34, height * 0.67, panelWidth, 92, "Trend prediction", 0.48 + pulse * 0.34);
+    drawPanel(panelX, height * 0.19, panelWidth, 92, translateText("Customer behaviour"), 0.52 + pulse * 0.28);
+    drawPanel(panelX + 46, height * 0.43, panelWidth, 92, translateText("Workflow automation"), 0.68 - pulse * 0.2);
+    drawPanel(panelX - 34, height * 0.67, panelWidth, 92, translateText("Trend prediction"), 0.48 + pulse * 0.34);
 
     nodes.forEach((node, index) => {
       node.x += node.vx;
@@ -456,6 +472,7 @@ if (canvas && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   resizeCanvas();
   if (isStaticHeroCanvas) {
     draw(1200);
+    i18n?.onChange(() => draw(performance.now()));
   } else {
     window.addEventListener("resize", resizeCanvas);
     requestAnimationFrame(draw);

@@ -148,6 +148,44 @@ h3 {
   color: var(--ink);
 }
 
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.language-switcher button {
+  min-width: 42px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: currentColor;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 850;
+  padding: 7px 9px;
+}
+
+.language-switcher button:hover,
+.language-switcher button:focus-visible {
+  outline: none;
+  background: rgba(156, 242, 200, 0.16);
+}
+
+.language-switcher button.is-active {
+  background: var(--lime);
+  color: var(--ink);
+}
+
+.is-scrolled .language-switcher,
+.policy-nav .language-switcher {
+  border-color: var(--line);
+}
+
 .nav-toggle {
   display: none;
 }
@@ -1243,6 +1281,16 @@ h3 {
     width: 100%;
     padding: 15px 0;
     font-size: 1.35rem;
+  }
+
+  .site-nav .language-switcher {
+    margin-top: 8px;
+    border-color: rgba(255, 255, 255, 0.32);
+  }
+
+  .site-nav .language-switcher button {
+    min-width: 58px;
+    padding: 10px 14px;
   }
 
   .site-nav .nav-contact {

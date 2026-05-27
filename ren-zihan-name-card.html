@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ren Zihan Name Card | ddrzh.com</title>
+    <script>
+      (() => {
+        const params = new URLSearchParams(window.location.search);
+        const face = params.get("face");
+        if (face === "front" || face === "back") {
+          document.documentElement.dataset.exportFace = face;
+        }
+        const upload = params.get("upload");
+        if (upload === "front" || upload === "back") {
+          document.documentElement.dataset.uploadFace = upload;
+        }
+      })();
+    </script>
+    <style>
+      :root {
+        --ink: #071211;
+        --ink-soft: #18302e;
+        --surface: #f7faf8;
+        --paper: #ffffff;
+        --muted: #60706d;
+        --line: #dbe4df;
+        --teal: #007f78;
+        --teal-dark: #005f5a;
+        --mint: #9cf2c8;
+        --lime: #d7ff6a;
+        --amber: #f2b84b;
+        --card-w: 85mm;
+        --card-h: 55mm;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          linear-gradient(135deg, rgba(7, 18, 17, 0.06), rgba(0, 127, 120, 0.08)),
+          var(--surface);
+        color: var(--ink);
+        font-family:
+          Aptos, "Aptos Display", Bahnschrift, "Segoe UI", system-ui, sans-serif;
+      }
+
+      .workspace {
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+      }
+
+      .sheet {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 28px;
+      }
+
+      .card-wrap {
+        display: grid;
+        gap: 10px;
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .card {
+        position: relative;
+        width: var(--card-w);
+        height: var(--card-h);
+        overflow: hidden;
+        border-radius: 8px;
+        box-shadow: 0 24px 70px rgba(7, 18, 17, 0.18);
+      }
+
+      html[data-export-face] {
+        --export-scale: 6.25;
+        width: calc(var(--card-w) * var(--export-scale));
+        height: calc(var(--card-h) * var(--export-scale));
+        overflow: hidden;
+        background: transparent;
+      }
+
+      html[data-export-face] body {
+        width: calc(var(--card-w) * var(--export-scale));
+        height: calc(var(--card-h) * var(--export-scale));
+        overflow: hidden;
+        background: transparent;
+      }
+
+      html[data-export-face] .workspace {
+        display: block;
+        width: var(--card-w);
+        height: var(--card-h);
+        min-height: 0;
+        padding: 0;
+        transform: scale(var(--export-scale));
+        transform-origin: top left;
+      }
+
+      html[data-export-face] .sheet,
+      html[data-export-face] .card-wrap {
+        display: block;
+      }
+
+      html[data-export-face] .label,
+      html[data-export-face="front"] .card-wrap:has(.back),
+      html[data-export-face="back"] .card-wrap:has(.front) {
+        display: none;
+      }
+
+      html[data-export-face] .card {
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      html[data-upload-face] {
+        --card-w: 89mm;
+        --card-h: 59mm;
+        --upload-scale: 3.125;
+        width: calc(var(--card-w) * var(--upload-scale));
+        height: calc(var(--card-h) * var(--upload-scale));
+        overflow: hidden;
+        background: #ffffff;
+      }
+
+      html[data-upload-face] body {
+        width: calc(var(--card-w) * var(--upload-scale));
+        height: calc(var(--card-h) * var(--upload-scale));
+        overflow: hidden;
+        background: #ffffff;
+      }
+
+      html[data-upload-face] .workspace {
+        display: block;
+        width: var(--card-w);
+        height: var(--card-h);
+        min-height: 0;
+        padding: 0;
+        transform: scale(var(--upload-scale));
+        transform-origin: top left;
+      }
+
+      html[data-upload-face] .sheet,
+      html[data-upload-face] .card-wrap {
+        display: block;
+      }
+
+      html[data-upload-face] .label,
+      html[data-upload-face="front"] .card-wrap:has(.back),
+      html[data-upload-face="back"] .card-wrap:has(.front) {
+        display: none;
+      }
+
+      html[data-upload-face] .card {
+        width: var(--card-w);
+        height: var(--card-h);
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .front {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        padding: 6mm;
+        background:
+          linear-gradient(90deg, rgba(7, 18, 17, 0.98), rgba(7, 18, 17, 0.9)),
+          var(--ink);
+        color: #ffffff;
+      }
+
+      .front::before,
+      .front::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+      }
+
+      .front::before {
+        right: -9mm;
+        top: -18mm;
+        width: 44mm;
+        height: 72mm;
+        border: 1px solid rgba(156, 242, 200, 0.16);
+        transform: rotate(16deg);
+      }
+
+      .front::after {
+        right: 5mm;
+        bottom: 0;
+        width: 21mm;
+        height: 100%;
+        background:
+          linear-gradient(90deg, transparent, rgba(156, 242, 200, 0.08)),
+          repeating-linear-gradient(
+            180deg,
+            rgba(215, 255, 106, 0.12) 0,
+            rgba(215, 255, 106, 0.12) 1px,
+            transparent 1px,
+            transparent 6px
+          );
+        clip-path: polygon(30% 0, 100% 0, 70% 100%, 0 100%);
+      }
+
+      .brand-row,
+      .front-main,
+      .front-footer {
+        position: relative;
+        z-index: 1;
+      }
+
+      .brand-row {
+        display: flex;
+        align-items: center;
+        gap: 3mm;
+      }
+
+      .mark {
+        display: grid;
+        width: 10mm;
+        height: 10mm;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.42);
+        border-radius: 2mm;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--mint);
+        font-size: 13pt;
+        font-weight: 800;
+      }
+
+      .brand-name {
+        font-size: 8.5pt;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+      }
+
+      .front-main {
+        align-self: center;
+        max-width: 70mm;
+      }
+
+      .descriptor {
+        margin: 0 0 2.8mm;
+        color: var(--mint);
+        font-size: 9pt;
+        font-weight: 750;
+        letter-spacing: 0.1em;
+        line-height: 1.35;
+        text-transform: uppercase;
+      }
+
+      .name-line {
+        display: grid;
+        gap: 1.6mm;
+      }
+
+      h1 {
+        margin: 0;
+        color: #ffffff;
+        font-family:
+          "Aptos Display", Bahnschrift, Aptos, "Segoe UI", system-ui, sans-serif;
+        font-size: 25pt;
+        line-height: 0.96;
+        letter-spacing: 0;
+      }
+
+      .role-title {
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 8.5pt;
+        font-weight: 800;
+        line-height: 1.1;
+      }
+
+      .front-footer {
+        display: flex;
+        gap: 2mm;
+        align-items: center;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 7.2pt;
+        font-weight: 700;
+      }
+
+      .front-footer span + span::before {
+        content: "";
+        display: inline-block;
+        width: 1.2mm;
+        height: 1.2mm;
+        margin-right: 2mm;
+        border-radius: 50%;
+        background: var(--mint);
+        vertical-align: 0.4mm;
+      }
+
+      .back {
+        display: grid;
+        grid-template-columns: 1fr 33mm;
+        gap: 4mm;
+        padding: 5.4mm 5.6mm 5.2mm 6.2mm;
+        border: 1px solid rgba(0, 127, 120, 0.16);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 250, 248, 0.96)),
+          var(--paper);
+      }
+
+      .back::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 3mm;
+        height: 100%;
+        background: #9cf2c8;
+      }
+
+      .back-copy,
+      .contact-panel {
+        position: relative;
+        z-index: 1;
+      }
+
+      .back-kicker {
+        margin: 0 0 2mm;
+        color: var(--teal-dark);
+        font-size: 7.5pt;
+        font-weight: 850;
+        letter-spacing: 0.12em;
+        line-height: 1.35;
+        text-transform: uppercase;
+      }
+
+      h2 {
+        margin: 0;
+        color: var(--ink);
+        font-family:
+          "Aptos Display", Bahnschrift, Aptos, "Segoe UI", system-ui, sans-serif;
+        font-size: 12.8pt;
+        line-height: 1.06;
+        letter-spacing: 0;
+        text-wrap: balance;
+      }
+
+      .back-summary {
+        margin: 2.6mm 0 3mm;
+        color: var(--ink-soft);
+        font-size: 7.1pt;
+        line-height: 1.28;
+      }
+
+      .contact-panel {
+        display: grid;
+        align-content: start;
+        gap: 2.1mm;
+        min-width: 0;
+      }
+
+      .contact-item {
+        display: grid;
+        gap: 0.4mm;
+        min-width: 0;
+      }
+
+      .contact-item span {
+        color: var(--muted);
+        font-size: 6.8pt;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .contact-item strong {
+        color: var(--ink);
+        font-size: 8.4pt;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+      }
+
+      .privacy {
+        margin-top: 0.4mm;
+        border-top: 1px solid var(--line);
+        padding-top: 1.8mm;
+        color: var(--teal-dark);
+        font-size: 7.3pt;
+        font-weight: 800;
+        line-height: 1.25;
+      }
+
+      @media (max-width: 760px) {
+        .workspace {
+          align-items: start;
+          padding: 20px 14px;
+        }
+
+        .sheet {
+          gap: 20px;
+        }
+
+        .card {
+          max-width: calc(100vw - 28px);
+          height: auto;
+          aspect-ratio: 90 / 54;
+        }
+      }
+
+      @media print {
+        @page {
+          size: A4;
+          margin: 14mm;
+        }
+
+        body {
+          background: #ffffff;
+        }
+
+        .workspace {
+          display: block;
+          min-height: auto;
+          padding: 0;
+        }
+
+        .sheet {
+          justify-content: start;
+          gap: 8mm;
+        }
+
+        .label {
+          display: none;
+        }
+
+        .card-wrap {
+          display: block;
+        }
+
+        .card {
+          break-inside: avoid;
+          box-shadow: none;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+        }
+      }
+
+      @media print {
+        html[data-upload-face] {
+          width: 89mm;
+          height: 59mm;
+        }
+
+        html[data-upload-face] body,
+        html[data-upload-face] .workspace,
+        html[data-upload-face] .card {
+          width: 89mm;
+          height: 59mm;
+        }
+
+        html[data-upload-face] .workspace {
+          padding: 0;
+          transform: none;
+        }
+
+        @page {
+          size: 89mm 59mm;
+          margin: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="workspace">
+      <section class="sheet" aria-label="Ren Zihan ddrzh.com name card design">
+        <div class="card-wrap">
+          <div class="label">Front</div>
+          <article class="card front" aria-label="Name card front">
+            <div class="brand-row">
+              <span class="mark" aria-hidden="true">D</span>
+              <span class="brand-name">ddrzh.com</span>
+            </div>
+
+            <div class="front-main">
+              <p class="descriptor">AI systems | websites | apps</p>
+              <div class="name-line">
+                <h1>Ren Zihan</h1>
+                <span class="role-title">Co-founder and CEO</span>
+              </div>
+            </div>
+
+            <div class="front-footer" aria-label="Service highlights">
+              <span>Cyber clone</span>
+              <span>Workflow automation</span>
+              <span>Data privacy</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="card-wrap">
+          <div class="label">Back</div>
+          <article class="card back" aria-label="Name card back">
+            <div class="back-copy">
+              <p class="back-kicker">Custom digital products</p>
+              <h2>Practical AI systems for real workflows.</h2>
+              <p class="back-summary">
+                DDRZH builds AI systems, Cyber Clones of real people, websites and apps that help you and/or your business.
+              </p>
+            </div>
+
+            <div class="contact-panel" aria-label="Contact details">
+              <div class="contact-item">
+                <span>Phone</span>
+                <strong>+353 0830425119</strong>
+              </div>
+              <div class="contact-item">
+                <span>Email</span>
+                <strong>info@ddrzh.com</strong>
+              </div>
+              <div class="contact-item">
+                <span>Web</span>
+                <strong>ddrzh.com</strong>
+              </div>
+              <div class="privacy">Your data is your secret.</div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
