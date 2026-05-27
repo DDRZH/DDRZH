@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -98,6 +98,21 @@
     .case-cta:hover,
     .case-cta:focus-visible {
       transform: translateY(-1px);
+    }
+
+    .case-topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .case-lang-toggle {
+      border: 1px solid var(--border-light);
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--text-primary);
+      box-shadow: none;
     }
 
     /* Hero Section */
@@ -1465,6 +1480,9 @@
         flex-direction: column;
         align-items: stretch;
       }
+      .case-topbar-actions {
+        justify-content: stretch;
+      }
       .case-back, .case-cta {
         justify-content: center;
       }
@@ -1495,8 +1513,11 @@
 <body>
   <div class="case-shell">
     <div class="case-topbar">
-      <a class="case-back" href="index.html#case-studies">← Back to DDRZH case studies</a>
-      <a class="case-cta" href="index.html#contact">Start a similar project</a>
+      <a class="case-back" id="caseBackLink" href="index.html#case-studies">← Back to DDRZH case studies</a>
+      <div class="case-topbar-actions">
+        <button class="case-back case-lang-toggle" id="langToggle" type="button">中文</button>
+        <a class="case-cta" id="caseTopCta" href="index.html#contact">Start a similar project</a>
+      </div>
     </div>
 
   <!-- Hero -->
@@ -1529,7 +1550,7 @@
         </div>
         <div class="chat-status">
           <span class="chat-status-dot"></span>
-          在线
+          <span id="chatStatusLabel">在线</span>
         </div>
       </div>
 
@@ -1550,7 +1571,7 @@
     <div class="demo-caption">
       <span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-        演示约 30 秒，自动循环播放
+        <span id="demoCaptionText">演示约 30 秒，自动循环播放</span>
       </span>
     </div>
   </div>
@@ -1660,42 +1681,608 @@
     const messageList = document.getElementById('messageList');
     const chatOverlay = document.getElementById('chatOverlay');
     const importOverlay = document.getElementById('importOverlay');
+    const langToggle = document.getElementById('langToggle');
+    const LANGUAGE_STORAGE_KEY = 'ddrzh-case-lang';
     let chatDemoRunning = false;
     let importDemoRunning = false;
+    let currentLang = 'en';
 
-    const DEMO_SCRIPT = [
-      {
-        type: 'user',
-        text: '帮我看看最近班上成绩波动大的学生',
-        delay: 600
+    const TRANSLATIONS = {
+      en: {
+        meta: { title: 'DDRZH Case Study | Teaching Assistant Demo' },
+        topbar: {
+          back: '← Back to DDRZH case studies',
+          cta: 'Start a similar project',
+          toggle: '中文'
+        },
+        hero: {
+          badge: 'Case study demo',
+          brand: 'DDRZH · Teaching assistant showcase',
+          title: 'Ask school data questions like a conversation.',
+          lead:
+            'Turn scores, historical records and teaching rules into an AI assistant you can show clients immediately.<br>This interaction pattern works for education and can also be adapted to retail, clinics, factories and other data-driven businesses.'
+        },
+        demo: {
+          overlay: 'Click to play AI chat',
+          title: 'Academic insights assistant',
+          subtitle: 'Answers grounded in real records',
+          status: 'Live',
+          inputPlaceholder: 'Ask a question, for example: Which students had the biggest score swings recently?',
+          caption: 'About 30 seconds, auto-replays',
+          roles: {
+            user: 'User',
+            assistant: 'Assistant',
+            thinking: 'Assistant · Analyzing'
+          },
+          thinkingHeader: 'Analyzing the data...',
+          script: [
+            {
+              type: 'user',
+              text: 'Show me students whose scores changed sharply in the last few exams',
+              delay: 600
+            },
+            {
+              type: 'thinking',
+              steps: [
+                { text: 'Parse intent: find students with strong score volatility', detail: 'intent=score_volatility | entity=student | scope=recent' },
+                { text: 'Build query: fetch score records for the latest 3 exams', detail: 'SELECT exam_id, student_id, subject, score FROM exam_scores WHERE exam_id IN (...) ORDER BY exam_date DESC' },
+                { text: 'Calculate variance and ranking movement for each student', detail: 'aggregate: stddev(score), rank_delta per student across 3 exams' },
+                { text: 'Apply threshold: ranking down 5+ places or score down 10+ points', detail: 'filter: rank_delta >= 5 OR score_drop >= 10' },
+                { text: 'Cross-check behavior notes for negative signals', detail: 'JOIN performance_records ON student_id WHERE sentiment=negative AND date >= 30d' },
+                { text: 'Prepare response: 3 students matched, 2 have risk signals', detail: 'result_count=3 | risk_count=2 | ready_to_respond' }
+              ],
+              delay: 800
+            },
+            {
+              type: 'assistant',
+              text: 'Based on the latest three exams, these students deserve attention:',
+              hasTable: true,
+              hasActions: true,
+              delay: 500
+            }
+          ],
+          table: {
+            headers: ['Student', 'Class', 'Subjects with swings', 'Change', 'Risk flag'],
+            rows: [
+              ['Zhang Xiaoming', 'Grade 9 · Class 1', 'Math, English', '↓ 23 pts', 'Consistent decline', 'danger'],
+              ['Li Yutong', 'Grade 9 · Class 1', 'Physics', '↓ 15 pts', 'Single-subject swing', 'warning'],
+              ['Wang Haoran', 'Grade 9 · Class 2', 'Math', '↓ 28 pts', 'Needs attention', 'danger']
+            ]
+          },
+          suggestion:
+            'Recommendation: Zhang Xiaoming and Wang Haoran both show recent negative behavior notes, so parent communication should come first. Li Yutong looks more like a single-subject swing and may need a quick learning check-in.',
+          actions: ['Draft parent communication', 'Add follow-up flag', 'View detailed trend'],
+          proactive: {
+            message:
+              'I noticed Zhang Xiaoming also has negative behavior signals lately. Do you want me to add a performance note for him?',
+            primary: 'Yes, add the note',
+            secondary: 'Not now'
+          },
+          confirm: {
+            title: 'Confirm write action',
+            rows: [
+              ['Student', 'Zhang Xiaoming'],
+              ['Record type', 'Performance note'],
+              ['Content', 'Math scores have declined repeatedly and classroom attention is lower than usual'],
+              ['Linked item', 'Math Monthly Exam 3 (↓23 pts)']
+            ],
+            primary: 'Confirm add',
+            secondary: 'Cancel'
+          },
+          success: {
+            title: 'Saved successfully',
+            body:
+              'A <strong>performance note</strong> has been added for Zhang Xiaoming. The system will surface a reminder automatically after the next score update.'
+          }
+        },
+        import: {
+          title: 'One-click migration for historical data',
+          subtitle: 'Import Excel or CSV files, auto-map fields and bring old records into the system with almost no setup.',
+          overlay: 'Click to play data import',
+          fileName: 'student-scores.xlsx',
+          hint: 'Click to upload or drag the file here',
+          progress: [
+            { pct: 15, label: 'Uploading file... 15%' },
+            { pct: 35, label: 'Detecting fields... 35%' },
+            { pct: 55, label: 'Auto-mapping columns... 55%' },
+            { pct: 75, label: 'Validating format... 75%' },
+            { pct: 92, label: 'Writing to database... 92%' },
+            { pct: 100, label: 'Import complete' }
+          ],
+          steps: [
+            'Detected fields: name, class, Chinese, math, English...',
+            'Auto-mapped Excel columns to system fields',
+            'Validation passed: 52 records, 0 errors',
+            'Database write finished: score records linked to the right students'
+          ],
+          resultTitle: 'Import preview',
+          resultCount: '52 records',
+          headers: ['Name', 'Class', 'Chinese', 'Math', 'English', 'Status'],
+          rows: [
+            ['Zhang Xiaoming', 'Grade 9 · Class 1', '85', '92', '78', 'Imported'],
+            ['Li Yutong', 'Grade 9 · Class 1', '88', '76', '91', 'Imported'],
+            ['Wang Haoran', 'Grade 9 · Class 2', '79', '68', '82', 'Imported']
+          ]
+        },
+        rbac: {
+          title: 'Multi-role permission management',
+          subtitle: 'Different roles see different features and data, so collaboration stays inside clear boundaries.',
+          overlay: 'Click to play role switching',
+          tabs: ['👨‍💼 Admin', '👩‍🏫 Teacher', '💁 Front desk'],
+          items: {
+            admin: [['Dashboard', 'Visible'], ['Account management', 'Visible'], ['Score entry', 'Visible'], ['Performance notes', 'Visible'], ['Parent communication', 'Visible'], ['System settings', 'Visible']],
+            teacher: [['Dashboard', 'Visible'], ['Account management', 'Hidden'], ['Score entry', 'Visible'], ['Performance notes', 'Visible'], ['Parent communication', 'Visible'], ['System settings', 'Hidden']],
+            staff: [['Dashboard', 'Visible'], ['Account management', 'Hidden'], ['Score entry', 'Hidden'], ['Performance notes', 'Visible'], ['Parent communication', 'Hidden'], ['System settings', 'Hidden']]
+          }
+        },
+        chart: {
+          title: 'Visual analytics',
+          subtitle: 'Distribution, trends and tier comparisons make the data easy to read at a glance.',
+          overlay: 'Click to play chart generation',
+          boxTitles: ['Class score distribution', 'Math score trend'],
+          barValues: ['3 students', '8 students', '18 students', '15 students', '5 students'],
+          barLabels: ['<60', '60-70', '70-80', '80-90', '90+'],
+          lineLabels: ['Quiz 1', 'Quiz 2', 'Midterm', 'Quiz 3', 'Quiz 4', 'Final']
+        },
+        scenes: {
+          title: 'One core capability, adapted to many industries',
+          subtitle:
+            'The teaching assistant is only one example. The same backend capabilities can be reused in any data-driven business.<br>Click each card to see the matching technical stack.',
+          arrow: 'View matching capabilities',
+          cards: [
+            {
+              title: 'Food service / retail',
+              body: '"Which dishes dropped in sales this week?"<br>"Which members are buying less often now?"<br>AI reviews trading data and produces practical campaign ideas.',
+              tech: [
+                ['Data querying', 'Natural language to structured queries across orders, members and stock tables'],
+                ['Trend analysis', 'Time-series aggregation with period-over-period change detection for sales and basket anomalies'],
+                ['Task orchestration', 'Async report generation with live progress feedback for large datasets'],
+                ['Outbound messaging', 'Generate campaign copy from insights and push it to the right customer segment']
+              ]
+            },
+            {
+              title: 'Clinics / health',
+              body: '"Which patients are overdue for follow-up?"<br>"Which time slots have the highest cancellation rate this month?"<br>AI spots risk cases directly from booking and visit records.',
+              tech: [
+                ['Risk detection', 'Cross-check appointment gaps, visit frequency and medication history across multiple dimensions'],
+                ['Natural language', 'Turn spoken notes into structured medical labels without long forms'],
+                ['Permission control', 'Multi-role access for doctors, nurses and front desk staff with audit trails'],
+                ['Reminder engine', 'Run rule-based reminders alongside AI-based anomaly alerts']
+              ]
+            },
+            {
+              title: 'Small factories / trade',
+              body: '"Which suppliers were late more than three times?"<br>"Which inventory category turns the slowest?"<br>Turn ERP and inventory data into operational decisions.',
+              tech: [
+                ['Data import', 'Smart Excel and CSV recognition with automatic field mapping for legacy migration'],
+                ['Inventory analysis', 'ABC segmentation, turnover calculations and safety-stock alerts with reorder suggestions'],
+                ['Supplier scoring', 'Weighted models across delivery timeliness, quality and price volatility'],
+                ['Document parsing', 'OCR plus LLM extraction for contracts and scanned paperwork']
+              ]
+            },
+            {
+              title: 'Education / training',
+              body: '"Which students have unstable score trends?"<br>"Which knowledge points have the highest error rate?"<br>Ask natural-language questions and generate communication drafts from the data.',
+              tech: [
+                ['Agent engine', 'Multi-step reasoning, tool use and response synthesis instead of a simple chatbot'],
+                ['Score analysis', 'Tiered statistics, trend tracking and student/class comparisons across many dimensions'],
+                ['Knowledge graph', 'Question-to-skill trees and error attribution for weak-point diagnosis'],
+                ['Smart generation', 'Generate comments, communication drafts and records directly from contextual data']
+              ]
+            }
+          ]
+        },
+        footer: {
+          title: 'Want this adapted to your own business workflow?',
+          copy:
+            'DDRZH can turn spreadsheets, internal data and repetitive staff questions into a branded assistant, dashboard or portal flow that fits your operation.',
+          cta: 'Request the free first version',
+          back: 'View more case studies'
+        }
       },
-      {
-        type: 'thinking',
-        steps: [
-          { text: '解析用户意图：查询成绩波动大的学生', detail: 'intent=score_volatility | entity=student | scope=recent' },
-          { text: '构建查询：获取最近 3 次考试的所有成绩记录', detail: 'SELECT exam_id, student_id, subject, score FROM exam_scores WHERE exam_id IN (...) ORDER BY exam_date DESC' },
-          { text: '计算每位学生的成绩方差和班级排名变化', detail: 'aggregate: stddev(score), rank_delta per student across 3 exams' },
-          { text: '设定阈值：筛选排名下滑超过 5 名或分数下降超过 10 分的学生', detail: 'filter: rank_delta >= 5 OR score_drop >= 10' },
-          { text: '交叉比对表现记录，标记是否有负向行为信号', detail: 'JOIN performance_records ON student_id WHERE sentiment=negative AND date >= 30d' },
-          { text: '生成结论：3 名学生符合波动条件，其中 2 名有风险信号', detail: 'result_count=3 | risk_count=2 | ready_to_respond' }
-        ],
-        delay: 800
-      },
-      {
-        type: 'assistant',
-        text: '根据最近三次考试数据，我发现了以下值得关注的学生：',
-        hasTable: true,
-        hasActions: true,
-        delay: 500
+      zh: {
+        meta: { title: 'DDRZH 案例展示 | 教师助手演示' },
+        topbar: {
+          back: '← 返回 DDRZH 案例展示',
+          cta: '开始类似项目',
+          toggle: 'English'
+        },
+        hero: {
+          badge: '案例演示',
+          brand: 'DDRZH · 教师助手展示',
+          title: '像对话一样提问你的教学数据。',
+          lead:
+            '把成绩、历史记录和教学规则变成一个可直接演示给客户的 AI 助手。<br>这套交互既能用于教育，也能迁移到零售、诊所、工厂和其他数据驱动业务。'
+        },
+        demo: {
+          overlay: '点击演示 AI 对话',
+          title: '教学分析助手',
+          subtitle: '基于真实记录回答',
+          status: '在线',
+          inputPlaceholder: '输入问题，例如：最近哪几位学生成绩波动最大？',
+          caption: '演示约 30 秒，自动循环播放',
+          roles: {
+            user: '用户',
+            assistant: '助手',
+            thinking: '助手 · 思考中'
+          },
+          thinkingHeader: '正在分析数据...',
+          script: [
+            {
+              type: 'user',
+              text: '帮我看看最近班上成绩波动大的学生',
+              delay: 600
+            },
+            {
+              type: 'thinking',
+              steps: [
+                { text: '解析用户意图：查询成绩波动大的学生', detail: 'intent=score_volatility | entity=student | scope=recent' },
+                { text: '构建查询：获取最近 3 次考试的所有成绩记录', detail: 'SELECT exam_id, student_id, subject, score FROM exam_scores WHERE exam_id IN (...) ORDER BY exam_date DESC' },
+                { text: '计算每位学生的成绩方差和班级排名变化', detail: 'aggregate: stddev(score), rank_delta per student across 3 exams' },
+                { text: '设定阈值：筛选排名下滑超过 5 名或分数下降超过 10 分的学生', detail: 'filter: rank_delta >= 5 OR score_drop >= 10' },
+                { text: '交叉比对表现记录，标记是否有负向行为信号', detail: 'JOIN performance_records ON student_id WHERE sentiment=negative AND date >= 30d' },
+                { text: '生成结论：3 名学生符合波动条件，其中 2 名有风险信号', detail: 'result_count=3 | risk_count=2 | ready_to_respond' }
+              ],
+              delay: 800
+            },
+            {
+              type: 'assistant',
+              text: '根据最近三次考试数据，我发现了以下值得关注的学生：',
+              hasTable: true,
+              hasActions: true,
+              delay: 500
+            }
+          ],
+          table: {
+            headers: ['学生', '班级', '波动科目', '变化幅度', '风险标签'],
+            rows: [
+              ['张小明', '九年级一班', '数学、英语', '↓ 23 分', '连续下滑', 'danger'],
+              ['李雨桐', '九年级一班', '物理', '↓ 15 分', '单科波动', 'warning'],
+              ['王浩然', '九年级二班', '数学', '↓ 28 分', '需关注', 'danger']
+            ]
+          },
+          suggestion:
+            '建议：张小明和王浩然近期有负向表现记录，可优先安排家校沟通。李雨桐为单科波动，建议先了解近期学习状态。',
+          actions: ['生成家校沟通草稿', '添加关注标记', '查看详细趋势'],
+          proactive: {
+            message: '我注意到张小明近期有负向行为信号，是否需要为他添加一条表现记录？',
+            primary: '是的，添加记录',
+            secondary: '不用了'
+          },
+          confirm: {
+            title: '确认写入操作',
+            rows: [
+              ['学生', '张小明'],
+              ['记录类型', '表现记录'],
+              ['内容', '近期数学成绩连续下滑，课堂注意力下降'],
+              ['关联', '数学月考3（↓23分）']
+            ],
+            primary: '确认添加',
+            secondary: '取消'
+          },
+          success: {
+            title: '写入成功',
+            body: '已为张小明添加<strong>表现记录</strong>，系统将在下次成绩更新时自动提醒。'
+          }
+        },
+        import: {
+          title: '历史数据一键迁移',
+          subtitle: 'Excel/CSV 一键导入，字段自动映射，历史数据零门槛迁移',
+          overlay: '点击演示数据导入',
+          fileName: '学生成绩表.xlsx',
+          hint: '点击上传或拖拽到此处',
+          progress: [
+            { pct: 15, label: '上传文件... 15%' },
+            { pct: 35, label: '识别字段... 35%' },
+            { pct: 55, label: '自动映射... 55%' },
+            { pct: 75, label: '格式校验... 75%' },
+            { pct: 92, label: '写入数据库... 92%' },
+            { pct: 100, label: '导入完成' }
+          ],
+          steps: [
+            '识别字段：姓名、班级、语文、数学、英语...',
+            '自动映射：Excel 列 → 系统数据字段',
+            '格式校验：52 条记录通过，0 条异常',
+            '写入数据库：成绩记录已关联到对应学生'
+          ],
+          resultTitle: '导入预览',
+          resultCount: '共 52 条记录',
+          headers: ['姓名', '班级', '语文', '数学', '英语', '状态'],
+          rows: [
+            ['张小明', '九年级一班', '85', '92', '78', '已导入'],
+            ['李雨桐', '九年级一班', '88', '76', '91', '已导入'],
+            ['王浩然', '九年级二班', '79', '68', '82', '已导入']
+          ]
+        },
+        rbac: {
+          title: '多角色权限管理',
+          subtitle: '不同角色看到不同功能和数据，员工协作不越权。',
+          overlay: '点击演示权限切换',
+          tabs: ['👨‍💼 管理员', '👩‍🏫 教师', '💁 前台'],
+          items: {
+            admin: [['数据看板', '可见'], ['账户管理', '可见'], ['成绩录入', '可见'], ['表现记录', '可见'], ['家校沟通', '可见'], ['系统设置', '可见']],
+            teacher: [['数据看板', '可见'], ['账户管理', '隐藏'], ['成绩录入', '可见'], ['表现记录', '可见'], ['家校沟通', '可见'], ['系统设置', '隐藏']],
+            staff: [['数据看板', '可见'], ['账户管理', '隐藏'], ['成绩录入', '隐藏'], ['表现记录', '可见'], ['家校沟通', '隐藏'], ['系统设置', '隐藏']]
+          }
+        },
+        chart: {
+          title: '数据可视化分析',
+          subtitle: '成绩分布、趋势追踪、分层对比，数据一目了然。',
+          overlay: '点击演示图表生成',
+          boxTitles: ['班级成绩分布', '数学成绩趋势'],
+          barValues: ['3人', '8人', '18人', '15人', '5人'],
+          barLabels: ['<60', '60-70', '70-80', '80-90', '≥90'],
+          lineLabels: ['月考1', '月考2', '期中', '月考3', '月考4', '期末']
+        },
+        scenes: {
+          title: '同一套能力，适配不同行业',
+          subtitle:
+            '教师助手只是其中一个场景。底层技术可以迁移到任何数据驱动的业务。<br>点击卡片查看对应的后端技术能力。',
+          arrow: '查看对应能力',
+          cards: [
+            {
+              title: '餐饮 / 零售',
+              body: '"最近一周哪些菜品销量下滑？"<br>"会员消费频次下降的客户有哪些？"<br>AI 自动分析营业数据，给出营销建议。',
+              tech: [
+                ['数据查询', '自然语言转结构化查询，自动关联订单、会员、库存多张数据表'],
+                ['趋势分析', '时间序列聚合 + 同比环比计算，识别销量/客单价异常波动'],
+                ['任务调度', '异步报表生成 + 实时进度推送，大数据量不卡顿'],
+                ['消息触达', '根据分析结论自动生成营销文案，一键推送给目标客群']
+              ]
+            },
+            {
+              title: '诊所 / 健康',
+              body: '"哪些患者复诊周期异常？"<br>"本月预约取消率最高的时段是？"<br>从预约记录中自动识别风险患者。',
+              tech: [
+                ['风险识别', '多维度数据交叉验证（预约间隔 + 就诊频次 + 用药记录）'],
+                ['自然语言', '医生口头描述直接解析为结构化病历标签，无需手动填写表单'],
+                ['权限管理', '多角色访问控制（医生/护士/前台），数据隔离 + 操作审计'],
+                ['提醒引擎', '基于规则的自动提醒 + 基于 AI 的异常预警双轨并行']
+              ]
+            },
+            {
+              title: '小型工厂 / 贸易',
+              body: '"哪些供应商交货延迟超过 3 次？"<br>"库存周转最慢的品类是？"<br>把进销存数据变成可执行的洞察。',
+              tech: [
+                ['数据导入', 'Excel/CSV 智能识别 + 字段自动映射，历史数据一键迁移'],
+                ['库存分析', 'ABC 分类 + 周转率计算 + 安全库存预警，自动生成补货建议'],
+                ['供应商评估', '交货准时率、质量合格率、价格波动多指标加权评分模型'],
+                ['文档解析', '合同/单据扫描件 OCR + LLM 结构化提取，告别手工录入']
+              ]
+            },
+            {
+              title: '教育 / 培训',
+              body: '"最近成绩波动大的学生有哪些？"<br>"哪个知识点的错题率最高？"<br>自然语言查询成绩、生成沟通建议。',
+              tech: [
+                ['Agent 引擎', '多步推理规划 → 工具调用 → 结果合成，不是简单问答'],
+                ['成绩分析', '分层统计 + 趋势追踪 + 进退步排名，班级/个人多维对比'],
+                ['知识图谱', '题目-知识点关联树 + 错题归因，定位薄弱知识环节'],
+                ['智能生成', '基于数据上下文自动生成评语、沟通草稿、表现记录']
+              ]
+            }
+          ]
+        },
+        footer: {
+          title: '想把这套能力改造成你的业务工作流？',
+          copy: 'DDRZH 可以把表格、内部数据和重复性的员工问题，做成贴合你业务场景的品牌化助手、数据看板或门户流程。',
+          cta: '申请免费首版',
+          back: '查看更多案例'
+        }
       }
-    ];
+    };
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function getContent(lang = currentLang) {
+      return TRANSLATIONS[lang] || TRANSLATIONS.en;
+    }
+
+    function getSavedLanguage() {
+      try {
+        return window.localStorage.getItem(LANGUAGE_STORAGE_KEY) || 'en';
+      } catch {
+        return 'en';
+      }
+    }
+
+    function saveLanguage(lang) {
+      try {
+        window.localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+      } catch {
+        // Ignore storage failures in strict privacy modes.
+      }
+    }
+
+    function scrollToBottom() {
+      messageList.scrollTo({ top: messageList.scrollHeight, behavior: 'smooth' });
+    }
+
+    function updateStaticCopy() {
+      const content = getContent();
+      document.title = content.meta.title;
+      document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
+      langToggle.textContent = content.topbar.toggle;
+
+      document.getElementById('caseBackLink').textContent = content.topbar.back;
+      document.getElementById('caseTopCta').textContent = content.topbar.cta;
+
+      document.querySelector('.hero-badge').textContent = content.hero.badge;
+      document.querySelector('.hero-brand').textContent = content.hero.brand;
+      document.querySelector('.hero h1').textContent = content.hero.title;
+      document.querySelector('.hero p').innerHTML = content.hero.lead;
+
+      document.querySelector('#chatOverlay .demo-overlay-text').textContent = content.demo.overlay;
+      document.querySelector('.chat-title').textContent = content.demo.title;
+      document.querySelector('.chat-subtitle').textContent = content.demo.subtitle;
+      document.getElementById('chatStatusLabel').textContent = content.demo.status;
+      document.querySelector('.chat-input').placeholder = content.demo.inputPlaceholder;
+      document.getElementById('demoCaptionText').textContent = content.demo.caption;
+
+      document.querySelector('.import-title').textContent = content.import.title;
+      document.querySelector('.import-subtitle').textContent = content.import.subtitle;
+      document.querySelector('#importOverlay .demo-overlay-text').textContent = content.import.overlay;
+      document.querySelector('.dropzone-text strong').textContent = content.import.fileName;
+      document.querySelector('.dropzone-hint').textContent = content.import.hint;
+      document.querySelector('.import-result-title').textContent = content.import.resultTitle;
+      document.querySelector('.import-result-count').textContent = content.import.resultCount;
+
+      document.querySelectorAll('.import-step-row').forEach((row, index) => {
+        row.children[1].textContent = content.import.steps[index];
+      });
+
+      document.querySelectorAll('.import-table thead th').forEach((cell, index) => {
+        cell.textContent = content.import.headers[index];
+      });
+      document.querySelectorAll('.import-table tbody tr').forEach((row, index) => {
+        const rowData = content.import.rows[index];
+        row.children[0].querySelector('strong').textContent = rowData[0];
+        row.children[1].textContent = rowData[1];
+        row.children[2].textContent = rowData[2];
+        row.children[3].textContent = rowData[3];
+        row.children[4].textContent = rowData[4];
+        row.children[5].querySelector('.tag').textContent = rowData[5];
+      });
+
+      document.querySelector('.rbac-section .scenes-title').textContent = content.rbac.title;
+      document.querySelector('.rbac-section .scenes-subtitle').textContent = content.rbac.subtitle;
+      document.querySelector('#rbacOverlay .demo-overlay-text').textContent = content.rbac.overlay;
+      document.querySelectorAll('.rbac-tab').forEach((tab, index) => {
+        tab.textContent = content.rbac.tabs[index];
+      });
+
+      const roleKeys = ['admin', 'teacher', 'staff'];
+      document.querySelectorAll('.rbac-content').forEach((roleContent, roleIndex) => {
+        const items = content.rbac.items[roleKeys[roleIndex]];
+        roleContent.querySelectorAll('.rbac-menu-item').forEach((item, itemIndex) => {
+          item.children[1].textContent = items[itemIndex][0];
+          item.children[2].textContent = items[itemIndex][1];
+        });
+      });
+
+      document.querySelector('.chart-section .scenes-title').textContent = content.chart.title;
+      document.querySelector('.chart-section .scenes-subtitle').textContent = content.chart.subtitle;
+      document.querySelector('#chartOverlay .demo-overlay-text').textContent = content.chart.overlay;
+      document.querySelectorAll('.chart-box-title').forEach((title, index) => {
+        title.textContent = content.chart.boxTitles[index];
+      });
+      document.querySelectorAll('.bar-item').forEach((barItem, index) => {
+        barItem.querySelector('.bar-value').textContent = content.chart.barValues[index];
+        barItem.querySelector('.bar-label').textContent = content.chart.barLabels[index];
+      });
+      document.querySelectorAll('.line-label').forEach((label, index) => {
+        label.textContent = content.chart.lineLabels[index];
+      });
+
+      document.querySelector('.scenes-section .scenes-title').textContent = content.scenes.title;
+      document.querySelector('.scenes-section .scenes-subtitle').innerHTML = content.scenes.subtitle;
+      document.querySelectorAll('.scene-card').forEach((card, cardIndex) => {
+        const cardCopy = content.scenes.cards[cardIndex];
+        card.querySelector('h3').textContent = cardCopy.title;
+        card.querySelector('p').innerHTML = cardCopy.body;
+        card.querySelector('.scene-arrow-text').textContent = content.scenes.arrow;
+        card.querySelectorAll('.tech-list li').forEach((item, itemIndex) => {
+          item.querySelector('.tech-badge').textContent = cardCopy.tech[itemIndex][0];
+          item.querySelector('.tech-desc').textContent = cardCopy.tech[itemIndex][1];
+        });
+      });
+
+      document.getElementById('caseFooterTitle').textContent = content.footer.title;
+      document.getElementById('caseFooterCopy').textContent = content.footer.copy;
+      document.getElementById('caseFooterCta').textContent = content.footer.cta;
+      document.getElementById('caseFooterBack').textContent = content.footer.back;
+    }
+
+    function resetInteractiveState() {
+      chatDemoRunning = false;
+      importDemoRunning = false;
+      messageList.innerHTML = '';
+      chatOverlay.classList.remove('hidden');
+      importOverlay.classList.remove('hidden');
+
+      if (typeof rbacDemoRunning !== 'undefined') {
+        rbacDemoRunning = false;
+      }
+      if (typeof chartDemoRunning !== 'undefined') {
+        chartDemoRunning = false;
+      }
+
+      if (typeof dropzone !== 'undefined') {
+        dropzone.style.display = 'block';
+        dropzone.classList.remove('active');
+      }
+      if (typeof clickRipple !== 'undefined') {
+        clickRipple.classList.remove('animate');
+      }
+      if (typeof progressArea !== 'undefined') {
+        progressArea.classList.remove('show');
+      }
+      if (typeof progressFill !== 'undefined') {
+        progressFill.style.width = '0%';
+      }
+      if (typeof progressText !== 'undefined') {
+        progressText.innerHTML = `<div class="progress-spinner"></div>${getContent().import.progress[0].label}`;
+      }
+      if (typeof importStepsArea !== 'undefined') {
+        importStepsArea.classList.remove('show');
+        importStepsArea.querySelectorAll('.import-step-row').forEach((row, index) => {
+          row.classList.remove('show');
+          const icon = row.querySelector('.import-step-icon');
+          icon.classList.remove('done');
+          icon.textContent = String(index + 1);
+        });
+      }
+      if (typeof importResultArea !== 'undefined') {
+        importResultArea.classList.remove('show');
+      }
+
+      if (typeof rbacOverlay !== 'undefined') {
+        rbacOverlay.classList.remove('hidden');
+      }
+      document.querySelectorAll('.rbac-tab').forEach((tab, index) => {
+        tab.classList.toggle('active', index === 0);
+      });
+      document.querySelectorAll('.rbac-content').forEach((content, index) => {
+        content.classList.toggle('active', index === 0);
+      });
+      document.querySelectorAll('.rbac-menu-item').forEach((item) => item.classList.remove('show'));
+      document.querySelectorAll('.rbac-content[data-role="admin"] .rbac-menu-item').forEach((item) => item.classList.add('show'));
+
+      if (typeof chartOverlay !== 'undefined') {
+        chartOverlay.classList.remove('hidden');
+      }
+      document.querySelectorAll('.bar-fill').forEach((bar) => {
+        bar.style.height = '0%';
+        bar.classList.remove('show');
+      });
+      const linePath = document.getElementById('linePath');
+      const lineArea = document.getElementById('lineArea');
+      if (linePath) linePath.classList.remove('show');
+      if (lineArea) lineArea.classList.remove('show');
+      document.querySelectorAll('.line-dot').forEach((dot) => dot.classList.remove('show'));
+      document.querySelectorAll('.scene-card').forEach((card) => card.classList.remove('expanded'));
+    }
+
+    function setLanguage(lang, { persist = true, resetState = true } = {}) {
+      currentLang = lang === 'zh' ? 'zh' : 'en';
+      if (persist) {
+        saveLanguage(currentLang);
+      }
+      updateStaticCopy();
+      if (resetState) {
+        resetInteractiveState();
+      }
+    }
 
     function createMessageHTML(msg) {
+      const content = getContent();
+
       if (msg.type === 'user') {
         return `
           <div class="message-row message-row--user" style="animation-delay: 0s">
             <div class="message-bubble">
-              <div class="message-role">用户</div>
+              <div class="message-role">${content.demo.roles.user}</div>
               <div class="message-content"><span class="cursor"></span></div>
             </div>
           </div>
@@ -1716,11 +2303,11 @@
         return `
           <div class="message-row message-row--assistant" style="animation-delay: 0s">
             <div class="message-bubble">
-              <div class="message-role">助手 · 思考中</div>
+              <div class="message-role">${content.demo.roles.thinking}</div>
               <div class="thinking-block" id="thinkingBlock">
                 <div class="thinking-header">
                   <div class="thinking-spinner"></div>
-                  正在分析数据...
+                  ${content.demo.thinkingHeader}
                 </div>
                 ${stepsHTML}
               </div>
@@ -1732,40 +2319,24 @@
       if (msg.type === 'assistant') {
         let tableHTML = '';
         if (msg.hasTable) {
+          const rowsHTML = content.demo.table.rows.map((row) => `
+            <tr>
+              <td><strong>${row[0]}</strong></td>
+              <td>${row[1]}</td>
+              <td>${row[2]}</td>
+              <td style="color:${row[5] === 'danger' ? '#dc2626' : '#d97706'}">${row[3]}</td>
+              <td><span class="tag tag--${row[5]}">${row[4]}</span></td>
+            </tr>
+          `).join('');
+
           tableHTML = `
             <table class="result-table">
               <thead>
                 <tr>
-                  <th>学生</th>
-                  <th>班级</th>
-                  <th>波动科目</th>
-                  <th>变化幅度</th>
-                  <th>风险标签</th>
+                  ${content.demo.table.headers.map((header) => `<th>${header}</th>`).join('')}
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td><strong>张小明</strong></td>
-                  <td>九年级一班</td>
-                  <td>数学、英语</td>
-                  <td style="color:#dc2626">↓ 23 分</td>
-                  <td><span class="tag tag--danger">连续下滑</span></td>
-                </tr>
-                <tr>
-                  <td><strong>李雨桐</strong></td>
-                  <td>九年级一班</td>
-                  <td>物理</td>
-                  <td style="color:#d97706">↓ 15 分</td>
-                  <td><span class="tag tag--warning">单科波动</span></td>
-                </tr>
-                <tr>
-                  <td><strong>王浩然</strong></td>
-                  <td>九年级二班</td>
-                  <td>数学</td>
-                  <td style="color:#dc2626">↓ 28 分</td>
-                  <td><span class="tag tag--danger">需关注</span></td>
-                </tr>
-              </tbody>
+              <tbody>${rowsHTML}</tbody>
             </table>
           `;
         }
@@ -1776,15 +2347,15 @@
             <div class="action-bar">
               <button class="action-btn action-btn--primary">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                生成家校沟通草稿
+                ${content.demo.actions[0]}
               </button>
               <button class="action-btn action-btn--secondary" data-action="confirm-write">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                添加关注标记
+                ${content.demo.actions[1]}
               </button>
               <button class="action-btn action-btn--secondary">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                查看详细趋势
+                ${content.demo.actions[2]}
               </button>
             </div>
           `;
@@ -1793,10 +2364,10 @@
         return `
           <div class="message-row message-row--assistant" style="animation-delay: 0s">
             <div class="message-bubble">
-              <div class="message-role">助手</div>
+              <div class="message-role">${content.demo.roles.assistant}</div>
               <div class="message-content"><span class="cursor"></span></div>
               ${tableHTML}
-              <p style="margin-top:12px;font-size:13px;color:var(--text-secondary);">建议：张小明和王浩然近期有负向表现记录，可优先安排家校沟通。李雨桐为单科波动，建议先了解近期学习状态。</p>
+              <p style="margin-top:12px;font-size:13px;color:var(--text-secondary);">${content.demo.suggestion}</p>
               ${actionsHTML}
             </div>
           </div>
@@ -1806,45 +2377,34 @@
 
     async function typeText(element, text, speed = 35) {
       const cursor = element.querySelector('.cursor');
-      let i = 0;
       const node = document.createTextNode('');
+      let i = 0;
       element.insertBefore(node, cursor);
       while (i < text.length) {
         node.textContent += text[i];
-        i++;
+        i += 1;
         await sleep(speed);
       }
       if (cursor) cursor.remove();
     }
 
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    function scrollToBottom() {
-      messageList.scrollTo({ top: messageList.scrollHeight, behavior: 'smooth' });
-    }
-
     async function runDemo() {
       if (!chatDemoRunning) return;
-      chatOverlay.classList.add('hidden');
+      const content = getContent();
+      const demoScript = content.demo.script;
 
-      // Clear
+      chatOverlay.classList.add('hidden');
       messageList.innerHTML = '';
 
-      // Step 1: User message
       const userWrapper = document.createElement('div');
-      userWrapper.innerHTML = createMessageHTML(DEMO_SCRIPT[0]);
+      userWrapper.innerHTML = createMessageHTML(demoScript[0]);
       messageList.appendChild(userWrapper.firstElementChild);
-      const userBubble = messageList.lastElementChild.querySelector('.message-content');
-      await typeText(userBubble, DEMO_SCRIPT[0].text);
+      await typeText(messageList.lastElementChild.querySelector('.message-content'), demoScript[0].text);
 
-      // Pause here so user can read the input
       await sleep(1000);
 
-      // Step 2: Thinking block
       const thinkingWrapper = document.createElement('div');
-      thinkingWrapper.innerHTML = createMessageHTML(DEMO_SCRIPT[1]);
+      thinkingWrapper.innerHTML = createMessageHTML(demoScript[1]);
       messageList.appendChild(thinkingWrapper.firstElementChild);
       scrollToBottom();
       await sleep(600);
@@ -1853,7 +2413,6 @@
       for (let i = 0; i < steps.length; i++) {
         await sleep(700);
         steps[i].classList.add('show');
-
         if (i > 0) {
           const prevIcon = steps[i - 1].querySelector('.step-icon');
           prevIcon.classList.add('done');
@@ -1861,51 +2420,44 @@
         }
       }
 
-      // Last step done
       await sleep(700);
       const lastIcon = steps[steps.length - 1].querySelector('.step-icon');
       lastIcon.classList.add('done');
       lastIcon.textContent = '✓';
-
       await sleep(600);
 
-      // Step 3: Assistant response
       const assistWrapper = document.createElement('div');
-      assistWrapper.innerHTML = createMessageHTML(DEMO_SCRIPT[2]);
+      assistWrapper.innerHTML = createMessageHTML(demoScript[2]);
       messageList.appendChild(assistWrapper.firstElementChild);
       scrollToBottom();
-      const assistBubble = messageList.lastElementChild.querySelector('.message-content');
-      await typeText(assistBubble, DEMO_SCRIPT[2].text, 30);
+      await typeText(messageList.lastElementChild.querySelector('.message-content'), demoScript[2].text, 30);
       scrollToBottom();
 
       await sleep(1200);
 
-      // Step 4: AI proactive suggestion (behavioral record)
       const suggestWrapper = document.createElement('div');
       suggestWrapper.innerHTML = `
         <div class="message-row message-row--assistant" style="animation-delay: 0s">
           <div class="message-bubble">
-            <div class="message-role">助手</div>
+            <div class="message-role">${content.demo.roles.assistant}</div>
             <div class="message-content"><span class="cursor"></span></div>
             <div class="action-bar" style="margin-top:12px;">
               <button class="action-btn action-btn--primary" id="suggestRecordBtn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                是的，添加记录
+                ${content.demo.proactive.primary}
               </button>
-              <button class="action-btn action-btn--secondary" id="skipRecordBtn">不用了</button>
+              <button class="action-btn action-btn--secondary" id="skipRecordBtn">${content.demo.proactive.secondary}</button>
             </div>
           </div>
         </div>
       `;
       messageList.appendChild(suggestWrapper.firstElementChild);
       scrollToBottom();
-      const suggestBubble = messageList.lastElementChild.querySelector('.message-content');
-      await typeText(suggestBubble, '我注意到张小明近期有负向行为信号，是否需要为他添加一条表现记录？', 30);
+      await typeText(messageList.lastElementChild.querySelector('.message-content'), content.demo.proactive.message, 30);
       scrollToBottom();
 
       await sleep(1200);
 
-      // Step 5: Highlight and click "add record"
       const suggestRecordBtn = document.getElementById('suggestRecordBtn');
       if (suggestRecordBtn) suggestRecordBtn.classList.add('action-btn--highlight');
       scrollToBottom();
@@ -1920,23 +2472,19 @@
       if (skipRecordBtn) skipRecordBtn.style.opacity = '0.5';
       await sleep(400);
 
-      // Step 6: Show write confirmation card
       const confirmCard = document.createElement('div');
       confirmCard.className = 'confirm-card';
       confirmCard.innerHTML = `
         <div class="confirm-header">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-          确认写入操作
+          ${content.demo.confirm.title}
         </div>
         <div class="confirm-body">
-          <div class="confirm-row"><span class="confirm-label">学生</span><span class="confirm-value">张小明</span></div>
-          <div class="confirm-row"><span class="confirm-label">记录类型</span><span class="confirm-value">表现记录</span></div>
-          <div class="confirm-row"><span class="confirm-label">内容</span><span class="confirm-value">近期数学成绩连续下滑，课堂注意力下降</span></div>
-          <div class="confirm-row"><span class="confirm-label">关联</span><span class="confirm-value">数学月考3（↓23分）</span></div>
+          ${content.demo.confirm.rows.map((row) => `<div class="confirm-row"><span class="confirm-label">${row[0]}</span><span class="confirm-value">${row[1]}</span></div>`).join('')}
         </div>
         <div class="confirm-actions">
-          <button class="confirm-btn confirm-btn--primary" id="confirmBtn">确认添加</button>
-          <button class="confirm-btn confirm-btn--secondary">取消</button>
+          <button class="confirm-btn confirm-btn--primary" id="confirmBtn">${content.demo.confirm.primary}</button>
+          <button class="confirm-btn confirm-btn--secondary">${content.demo.confirm.secondary}</button>
         </div>
       `;
       messageList.lastElementChild.querySelector('.message-bubble').appendChild(confirmCard);
@@ -1947,7 +2495,6 @@
 
       await sleep(2200);
 
-      // Step 7: Confirm clicked
       const confirmBtn = document.getElementById('confirmBtn');
       if (confirmBtn) {
         confirmBtn.style.transform = 'scale(0.96)';
@@ -1959,23 +2506,21 @@
       await sleep(400);
       confirmCard.remove();
 
-      // Step 8: Success message
       const successWrapper = document.createElement('div');
       successWrapper.innerHTML = `
         <div class="message-row success-row" style="animation-delay: 0s">
           <div class="success-bubble">
             <div class="success-header">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              写入成功
+              ${content.demo.success.title}
             </div>
-            <div>已为张小明添加<strong>表现记录</strong>，系统将在下次成绩更新时自动提醒。</div>
+            <div>${content.demo.success.body}</div>
           </div>
         </div>
       `;
       messageList.appendChild(successWrapper.firstElementChild);
       scrollToBottom();
 
-      // Show overlay to replay
       await sleep(3000);
       chatOverlay.classList.remove('hidden');
       chatDemoRunning = false;
@@ -1987,20 +2532,24 @@
       runDemo();
     });
 
-    // Scene card expand
     document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('.scene-card').forEach(card => {
+      document.querySelectorAll('.scene-card').forEach((card) => {
         card.addEventListener('click', () => {
           const isExpanded = card.classList.contains('expanded');
-          document.querySelectorAll('.scene-card').forEach(c => c.classList.remove('expanded'));
+          document.querySelectorAll('.scene-card').forEach((sceneCard) => sceneCard.classList.remove('expanded'));
           if (!isExpanded) {
             card.classList.add('expanded');
           }
         });
       });
+
+      langToggle.addEventListener('click', () => {
+        setLanguage(currentLang === 'en' ? 'zh' : 'en');
+      });
+
+      setLanguage(getSavedLanguage(), { persist: false, resetState: true });
     });
 
-    // === Import Demo ===
     const dropzone = document.getElementById('dropzone');
     const clickRipple = document.getElementById('clickRipple');
     const progressArea = document.getElementById('progressArea');
@@ -2009,55 +2558,31 @@
     const importStepsArea = document.getElementById('importStepsArea');
     const importResultArea = document.getElementById('importResultArea');
 
-    const IMPORT_STEPS_TEXT = [
-      { pct: 15, label: '上传文件... 15%' },
-      { pct: 35, label: '识别字段... 35%' },
-      { pct: 55, label: '自动映射... 55%' },
-      { pct: 75, label: '格式校验... 75%' },
-      { pct: 92, label: '写入数据库... 92%' },
-      { pct: 100, label: '导入完成' }
-    ];
-
     async function runImportDemo() {
       if (!importDemoRunning) return;
       importOverlay.classList.add('hidden');
-
-      // Reset
-      dropzone.style.display = 'block';
-      dropzone.classList.remove('active');
-      clickRipple.classList.remove('animate');
-      progressArea.classList.remove('show');
-      progressFill.style.width = '0%';
-      importStepsArea.classList.remove('show');
-      importResultArea.classList.remove('show');
-      importStepsArea.querySelectorAll('.import-step-row').forEach(s => {
-        s.classList.remove('show');
-        const icon = s.querySelector('.import-step-icon');
-        icon.classList.remove('done');
-        icon.textContent = icon.parentElement.dataset.importStep ? String(parseInt(icon.parentElement.dataset.importStep) + 1) : '1';
-      });
+      resetInteractiveState();
+      importDemoRunning = true;
+      chatOverlay.classList.remove('hidden');
+      importOverlay.classList.add('hidden');
 
       await sleep(800);
 
-      // Click ripple animation
       clickRipple.classList.add('animate');
       dropzone.classList.add('active');
       await sleep(600);
 
-      // Hide dropzone, show progress
       dropzone.style.display = 'none';
       progressArea.classList.add('show');
 
-      // Animate progress bar
-      for (const step of IMPORT_STEPS_TEXT) {
-        progressFill.style.width = step.pct + '%';
+      for (const step of getContent().import.progress) {
+        progressFill.style.width = `${step.pct}%`;
         progressText.innerHTML = `<div class="progress-spinner"></div>${step.label}`;
         await sleep(400);
       }
 
       await sleep(300);
 
-      // Show import steps
       progressArea.classList.remove('show');
       importStepsArea.classList.add('show');
 
@@ -2065,7 +2590,6 @@
       for (let i = 0; i < stepRows.length; i++) {
         await sleep(500);
         stepRows[i].classList.add('show');
-
         if (i > 0) {
           const prevIcon = stepRows[i - 1].querySelector('.import-step-icon');
           prevIcon.classList.add('done');
@@ -2073,18 +2597,13 @@
         }
       }
 
-      // Last step done
       await sleep(400);
       const lastIcon = stepRows[stepRows.length - 1].querySelector('.import-step-icon');
       lastIcon.classList.add('done');
       lastIcon.textContent = '✓';
-
       await sleep(400);
 
-      // Show result
       importResultArea.classList.add('show');
-
-      // Show overlay to replay
       await sleep(3000);
       importOverlay.classList.remove('hidden');
       importDemoRunning = false;
@@ -2336,7 +2855,7 @@
         <h3>餐饮 / 零售</h3>
         <p>"最近一周哪些菜品销量下滑？"<br>"会员消费频次下降的客户有哪些？"<br>AI 自动分析营业数据，给出营销建议。</p>
         <div class="scene-arrow">
-          查看对应能力
+          <span class="scene-arrow-text">查看对应能力</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </div>
         <div class="scene-expand">
@@ -2354,7 +2873,7 @@
         <h3>诊所 / 健康</h3>
         <p>"哪些患者复诊周期异常？"<br>"本月预约取消率最高的时段是？"<br>从预约记录中自动识别风险患者。</p>
         <div class="scene-arrow">
-          查看对应能力
+          <span class="scene-arrow-text">查看对应能力</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </div>
         <div class="scene-expand">
@@ -2372,7 +2891,7 @@
         <h3>小型工厂 / 贸易</h3>
         <p>"哪些供应商交货延迟超过 3 次？"<br>"库存周转最慢的品类是？"<br>把进销存数据变成可执行的洞察。</p>
         <div class="scene-arrow">
-          查看对应能力
+          <span class="scene-arrow-text">查看对应能力</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </div>
         <div class="scene-expand">
@@ -2390,7 +2909,7 @@
         <h3>教育 / 培训</h3>
         <p>"最近成绩波动大的学生有哪些？"<br>"哪个知识点的错题率最高？"<br>自然语言查询成绩、生成沟通建议。</p>
         <div class="scene-arrow">
-          查看对应能力
+          <span class="scene-arrow-text">查看对应能力</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </div>
         <div class="scene-expand">
@@ -2407,12 +2926,12 @@
   <section class="case-footer">
     <div class="case-footer-panel">
       <div>
-        <h2>Want this adapted to your own business workflow?</h2>
-        <p>DDRZH can turn spreadsheets, internal data and repetitive staff questions into a branded assistant, dashboard or portal flow that fits your operation.</p>
+        <h2 id="caseFooterTitle">Want this adapted to your own business workflow?</h2>
+        <p id="caseFooterCopy">DDRZH can turn spreadsheets, internal data and repetitive staff questions into a branded assistant, dashboard or portal flow that fits your operation.</p>
       </div>
       <div class="case-footer-actions">
-        <a class="case-cta" href="index.html#trial">Request the free first version</a>
-        <a class="case-back" href="index.html#case-studies">View more case studies</a>
+        <a class="case-cta" id="caseFooterCta" href="index.html#trial">Request the free first version</a>
+        <a class="case-back" id="caseFooterBack" href="index.html#case-studies">View more case studies</a>
       </div>
     </div>
   </section>
