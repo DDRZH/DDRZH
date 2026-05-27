@@ -1,0 +1,2422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDRZH Case Study | Teaching Assistant Demo</title>
+  <style>
+    :root {
+      --primary: #007f78;
+      --primary-light: #15a89d;
+      --primary-lighter: rgba(0, 127, 120, 0.1);
+      --bg-primary: #f7faf8;
+      --bg-card: rgba(255, 255, 255, 0.94);
+      --text-primary: #071211;
+      --text-secondary: #4f6662;
+      --text-muted: #6f817d;
+      --border: rgba(24, 48, 46, 0.12);
+      --border-light: rgba(219, 228, 223, 0.9);
+      --success: #10b981;
+      --success-light: #d1fae5;
+      --success-text: #059669;
+      --warning: #f2b84b;
+      --warning-light: #fff4d8;
+      --warning-text: #a86c00;
+      --danger: #ef4444;
+      --danger-light: #fee2e2;
+      --danger-text: #dc2626;
+      --info: #0f766e;
+      --info-light: #d8f4ef;
+      --info-text: #0f766e;
+      --accent: #d7ff6a;
+      --shadow-lg: 0 28px 60px rgba(7, 18, 17, 0.1);
+      --radius-xl: 16px;
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --max-width: 1180px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(circle at 10% 10%, rgba(215, 255, 106, 0.28), transparent 26%),
+        radial-gradient(circle at 92% 12%, rgba(0, 127, 120, 0.12), transparent 24%),
+        linear-gradient(180deg, #eef5f1 0%, #f7faf8 34%, #f7faf8 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .case-shell {
+      width: min(calc(100% - 40px), var(--max-width));
+      margin: 0 auto;
+    }
+
+    .case-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 0 0;
+    }
+
+    .case-back,
+    .case-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      border-radius: var(--radius-md);
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+
+    .case-back {
+      border: 1px solid var(--border-light);
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--text-primary);
+    }
+
+    .case-cta {
+      background: var(--accent);
+      color: var(--text-primary);
+      box-shadow: 0 14px 28px rgba(7, 18, 17, 0.08);
+    }
+
+    .case-back:hover,
+    .case-back:focus-visible,
+    .case-cta:hover,
+    .case-cta:focus-visible {
+      transform: translateY(-1px);
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 88px 32px 44px;
+      max-width: none;
+      margin: 18px auto 0;
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(120deg, rgba(7, 18, 17, 0.97) 0%, rgba(7, 18, 17, 0.88) 48%, rgba(0, 127, 120, 0.82) 100%),
+        radial-gradient(circle at 80% 18%, rgba(215, 255, 106, 0.14), transparent 24%);
+      color: #fff;
+      box-shadow: 0 28px 60px rgba(7, 18, 17, 0.18);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-lighter);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(215, 255, 106, 0.18);
+      background: rgba(215, 255, 106, 0.08);
+    }
+
+    .hero-badge::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .hero-brand {
+      font-size: 14px;
+      font-weight: 700;
+      color: #9cf2c8;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #ffffff 0%, #d7ff6a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.78);
+      line-height: 1.6;
+    }
+
+    /* Viewport */
+    .viewport-wrapper {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+      position: relative;
+      margin-top: -18px;
+    }
+
+    .viewport {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(18px);
+    }
+
+    /* Chat Interface */
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-light);
+      background: rgba(255,255,255,0.82);
+    }
+
+    .chat-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .chat-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .chat-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .chat-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.8);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-light);
+    }
+
+    .chat-status-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+    }
+
+    .message-list {
+      padding: 24px;
+      min-height: 380px;
+      max-height: 640px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .message-row {
+      display: flex;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeInUp 0.5s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-row--user {
+      justify-content: flex-end;
+    }
+
+    .message-bubble {
+      max-width: 80%;
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .message-row--user .message-bubble {
+      background: var(--primary);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message-row--assistant .message-bubble {
+      background: rgba(255,255,255,0.86);
+      color: var(--text-primary);
+      border: 1px solid var(--border-light);
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-role {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .message-row--user .message-role {
+      color: rgba(255,255,255,0.7);
+      text-align: right;
+    }
+
+    /* Thinking Block */
+    .thinking-block {
+      background: linear-gradient(135deg, rgba(0,127,120,0.04), rgba(0,127,120,0.08));
+      border: 1px solid rgba(0,127,120,0.15);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .thinking-block::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--primary), var(--primary-light));
+    }
+
+    .thinking-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .thinking-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(0,127,120,0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .thinking-step {
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0,127,120,0.06);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .thinking-step.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .thinking-step:last-child {
+      border-bottom: none;
+    }
+
+    .step-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary-lighter);
+      color: var(--primary);
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+      font-weight: 600;
+    }
+
+    .step-icon.done {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .step-text {
+      flex: 1;
+      line-height: 1.6;
+    }
+
+    .step-detail {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-family: "SF Mono", Monaco, monospace;
+      background: rgba(255,255,255,0.6);
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    /* Result Table */
+    .result-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .result-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: rgba(244,246,251,0.8);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .result-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+    }
+
+    .result-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .tag--danger {
+      background: rgba(239,68,68,0.1);
+      color: #dc2626;
+    }
+
+    .tag--warning {
+      background: rgba(245,158,11,0.1);
+      color: #d97706;
+    }
+
+    /* Action Buttons */
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .action-btn--primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .action-btn--primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .action-btn--secondary {
+      background: rgba(255,255,255,0.8);
+      color: var(--text-secondary);
+      border-color: var(--border-light);
+    }
+
+    .action-btn--secondary:hover {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    .action-btn--highlight {
+      background: var(--primary-lighter);
+      color: var(--primary);
+      border-color: rgba(0,127,120,0.3);
+      box-shadow: 0 0 0 3px rgba(0,127,120,0.1);
+    }
+
+    /* Confirm Card */
+    .confirm-card {
+      background: linear-gradient(135deg, rgba(0,127,120,0.04), rgba(0,127,120,0.08));
+      border: 1px solid rgba(0,127,120,0.2);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      margin-top: 14px;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .confirm-card.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .confirm-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--primary), var(--primary-light));
+    }
+
+    .confirm-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .confirm-header svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .confirm-body {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+
+    .confirm-row {
+      display: flex;
+      gap: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(0,127,120,0.08);
+    }
+
+    .confirm-row:last-child {
+      border-bottom: none;
+    }
+
+    .confirm-label {
+      color: var(--text-muted);
+      width: 60px;
+      flex-shrink: 0;
+    }
+
+    .confirm-value {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .confirm-btn {
+      padding: 7px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .confirm-btn--primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .confirm-btn--secondary {
+      background: rgba(255,255,255,0.8);
+      color: var(--text-secondary);
+      border-color: var(--border-light);
+    }
+
+    /* Success Message */
+    .success-row {
+      display: flex;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeInUp 0.5s ease forwards;
+    }
+
+    .success-bubble {
+      max-width: 80%;
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      font-size: 14px;
+      line-height: 1.7;
+      background: rgba(16,185,129,0.06);
+      color: var(--text-primary);
+      border: 1px solid rgba(16,185,129,0.15);
+      border-bottom-left-radius: 4px;
+    }
+
+    .success-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--success-text);
+      margin-bottom: 6px;
+    }
+
+    .success-header svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Input Area */
+    .chat-input-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border-light);
+      background: rgba(255,255,255,0.72);
+    }
+
+    .chat-input {
+      flex: 1;
+      background: rgba(244,246,251,0.92);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .chat-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .send-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .send-btn:hover { opacity: 0.9; }
+
+    /* Cursor */
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.2em;
+      background: var(--primary);
+      vertical-align: text-bottom;
+      margin-left: 2px;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* Caption */
+    .demo-caption {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .demo-caption span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.7);
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-light);
+    }
+
+    .case-footer {
+      max-width: 980px;
+      margin: 0 auto 80px;
+      padding: 0 20px;
+    }
+
+    .case-footer-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) auto;
+      gap: 20px;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(234,243,238,0.96));
+      box-shadow: var(--shadow-lg);
+    }
+
+    .case-footer-panel h2 {
+      font-size: 28px;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .case-footer-panel p {
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .case-footer-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    /* Scene Cards Section */
+    .scenes-section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+
+    .scenes-title {
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .scenes-subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 15px;
+      margin-bottom: 40px;
+    }
+
+    /* === RBAC Demo Section === */
+    .rbac-section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+
+    .rbac-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: 32px;
+      min-height: 320px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rbac-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: 12px;
+    }
+
+    .rbac-tab {
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: default;
+      transition: all 0.3s ease;
+    }
+
+    .rbac-tab.active {
+      background: var(--primary-lighter);
+      color: var(--primary);
+      border-color: rgba(0,127,120,0.15);
+    }
+
+    .rbac-content {
+      display: none;
+      animation: fadeInUp 0.4s ease forwards;
+    }
+
+    .rbac-content.active {
+      display: block;
+    }
+
+    .rbac-menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .rbac-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      background: rgba(255,255,255,0.6);
+      font-size: 13px;
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .rbac-menu-item.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .rbac-menu-item.allowed {
+      border-color: rgba(16,185,129,0.2);
+      background: rgba(16,185,129,0.04);
+      color: var(--text-primary);
+    }
+
+    .rbac-menu-item.denied {
+      opacity: 0.45;
+    }
+
+    .rbac-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .rbac-status {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .rbac-status--allowed {
+      background: var(--success-light);
+      color: var(--success-text);
+    }
+
+    .rbac-status--denied {
+      background: var(--danger-light);
+      color: var(--danger-text);
+    }
+
+    /* === Chart Demo Section === */
+    .chart-section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+
+    .chart-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: 32px;
+      min-height: 340px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    .chart-box {
+      position: relative;
+    }
+
+    .chart-box-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .bar-chart {
+      display: flex;
+      align-items: stretch;
+      gap: 12px;
+      height: 160px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border-light);
+      position: relative;
+    }
+
+    .bar-chart::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 28px;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 39px,
+        var(--border-light) 39px,
+        var(--border-light) 40px
+      );
+      pointer-events: none;
+    }
+
+    .bar-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .bar-fill {
+      width: 100%;
+      max-width: 36px;
+      border-radius: 6px 6px 0 0;
+      transition: height 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+      position: relative;
+    }
+
+    .bar-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      position: absolute;
+      bottom: -24px;
+      white-space: nowrap;
+    }
+
+    .bar-value {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      position: absolute;
+      top: -18px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .bar-fill.show .bar-value {
+      opacity: 1;
+    }
+
+    .line-chart {
+      height: 160px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border-light);
+      position: relative;
+    }
+
+    .line-chart svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .line-path {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 500;
+      stroke-dashoffset: 500;
+      transition: stroke-dashoffset 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .line-path.show {
+      stroke-dashoffset: 0;
+    }
+
+    .line-area {
+      fill: rgba(0,127,120,0.08);
+      stroke: none;
+      opacity: 0;
+      transition: opacity 0.6s ease 0.6s;
+    }
+
+    .line-area.show {
+      opacity: 1;
+    }
+
+    .line-dot {
+      fill: #fff;
+      stroke: var(--primary);
+      stroke-width: 2;
+      r: 4;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .line-dot.show {
+      opacity: 1;
+    }
+
+    .line-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      padding: 0 4px;
+    }
+
+    .line-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 640px) {
+      .chart-grid { grid-template-columns: 1fr; }
+      .rbac-menu { grid-template-columns: 1fr; }
+    }
+
+    .scene-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .scene-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    .scene-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .scene-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .scene-card h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .scene-card > p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .scene-arrow {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--primary);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .scene-expand {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+
+    .scene-card.expanded .scene-expand {
+      max-height: 400px;
+      opacity: 1;
+      margin-top: 16px;
+    }
+
+    .scene-card.expanded .scene-arrow svg {
+      transform: rotate(90deg);
+    }
+
+    .scene-arrow svg {
+      transition: transform 0.3s ease;
+    }
+
+    .tech-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .tech-list li {
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.6;
+    }
+
+    .tech-list li:last-child {
+      border-bottom: none;
+    }
+
+    .tech-badge {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--primary-lighter);
+      color: var(--primary);
+      margin-top: 1px;
+    }
+
+    .tech-desc {
+      flex: 1;
+    }
+
+    /* === Play Overlay === */
+    .demo-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      border-radius: var(--radius-xl);
+      transition: opacity 0.4s ease;
+      cursor: pointer;
+    }
+
+    .demo-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .demo-overlay-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0,127,120,0.24);
+      transition: transform 0.2s ease;
+    }
+
+    .demo-overlay-btn:hover {
+      transform: scale(1.08);
+    }
+
+    .demo-overlay-btn svg {
+      margin-left: 3px;
+    }
+
+    .demo-overlay-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* === Import Demo Section === */
+    .import-section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+    }
+
+    .import-title {
+      font-size: 24px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .import-subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 15px;
+      margin-bottom: 32px;
+    }
+
+    .import-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: 32px;
+      min-height: 320px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dropzone {
+      border: 2px dashed var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 40px 24px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .dropzone.active {
+      border-color: var(--primary);
+      background: var(--primary-lighter);
+    }
+
+    .dropzone-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .dropzone-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .dropzone-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .click-ripple {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      background: rgba(10, 132, 255, 0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .click-ripple.animate {
+      animation: rippleClick 0.6s ease forwards;
+    }
+
+    @keyframes rippleClick {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(8); opacity: 0; }
+    }
+
+    .progress-area {
+      display: none;
+      margin-bottom: 20px;
+    }
+
+    .progress-area.show {
+      display: block;
+      animation: fadeInUp 0.4s ease forwards;
+    }
+
+    .progress-bar-bg {
+      height: 8px;
+      background: var(--bg-primary);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .progress-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(0,127,120,0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .import-steps-area {
+      display: none;
+      margin-bottom: 20px;
+    }
+
+    .import-steps-area.show {
+      display: block;
+      animation: fadeInUp 0.4s ease forwards;
+    }
+
+    .import-step-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: all 0.4s ease;
+    }
+
+    .import-step-row.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .import-step-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary-lighter);
+      color: var(--primary);
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+
+    .import-step-icon.done {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .import-result-area {
+      display: none;
+    }
+
+    .import-result-area.show {
+      display: block;
+      animation: fadeInUp 0.5s ease forwards;
+    }
+
+    .import-result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .import-result-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .import-result-count {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .import-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .import-table th {
+      text-align: left;
+      padding: 10px 12px;
+      background: rgba(244,246,251,0.8);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .import-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-primary);
+    }
+
+    .import-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .case-topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .case-back, .case-cta {
+        justify-content: center;
+      }
+      .hero h1 { font-size: 26px; }
+      .message-list { padding: 16px; min-height: 320px; }
+      .message-bubble { max-width: 90%; padding: 12px 14px; font-size: 13px; }
+      .result-table { font-size: 12px; }
+      .result-table th, .result-table td { padding: 8px; }
+      .import-wrapper { padding: 20px; }
+      .hero {
+        padding: 76px 22px 36px;
+      }
+      .viewport-wrapper {
+        margin-top: -10px;
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .case-footer-panel {
+        grid-template-columns: 1fr;
+        padding: 22px;
+      }
+      .case-footer-actions {
+        justify-content: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="case-shell">
+    <div class="case-topbar">
+      <a class="case-back" href="index.html#case-studies">← Back to DDRZH case studies</a>
+      <a class="case-cta" href="index.html#contact">Start a similar project</a>
+    </div>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">Case study demo</div>
+    <div class="hero-brand">DDRZH · Teaching assistant showcase</div>
+    <h1>Ask school data questions like a conversation.</h1>
+    <p>把成绩、历史记录和业务规则变成一个可直接演示给客户的 AI 助手。<br>这套交互既能用于教育，也能迁移到零售、诊所、工厂和其他数据驱动业务。</p>
+  </section>
+
+  <!-- Demo Viewport -->
+  <div class="viewport-wrapper">
+    <div class="viewport" id="viewport">
+      <!-- Play Overlay -->
+      <div class="demo-overlay" id="chatOverlay">
+        <button class="demo-overlay-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </button>
+        <div class="demo-overlay-text">点击演示 AI 对话</div>
+      </div>
+
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <div class="chat-avatar">AI</div>
+          <div>
+            <div class="chat-title">业务分析助手</div>
+            <div class="chat-subtitle">基于真实数据回答</div>
+          </div>
+        </div>
+        <div class="chat-status">
+          <span class="chat-status-dot"></span>
+          在线
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="message-list" id="messageList">
+        <!-- Messages will be injected by JS -->
+      </div>
+
+      <!-- Input -->
+      <div class="chat-input-bar">
+        <input type="text" class="chat-input" placeholder="输入问题，例如：最近哪些客户消费下降了？" readonly>
+        <button class="send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="demo-caption">
+      <span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        演示约 30 秒，自动循环播放
+      </span>
+    </div>
+  </div>
+
+  <!-- Import Demo -->
+  <section class="import-section">
+    <h2 class="import-title">历史数据一键迁移</h2>
+    <p class="import-subtitle">Excel/CSV 一键导入，字段自动映射，历史数据零门槛迁移</p>
+
+    <div class="import-wrapper" id="importWrapper">
+      <!-- Play Overlay -->
+      <div class="demo-overlay" id="importOverlay">
+        <button class="demo-overlay-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </button>
+        <div class="demo-overlay-text">点击演示数据导入</div>
+      </div>
+
+      <!-- Dropzone -->
+      <div class="dropzone" id="dropzone">
+        <div class="click-ripple" id="clickRipple"></div>
+        <div class="dropzone-icon">XLS</div>
+        <div class="dropzone-text"><strong>学生成绩表.xlsx</strong></div>
+        <div class="dropzone-hint">点击上传或拖拽到此处</div>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-area" id="progressArea">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">
+          <div class="progress-spinner"></div>
+          准备上传...
+        </div>
+      </div>
+
+      <!-- Import Steps -->
+      <div class="import-steps-area" id="importStepsArea">
+        <div class="import-step-row" data-import-step="0">
+          <div class="import-step-icon">1</div>
+          <div>识别字段：姓名、班级、语文、数学、英语...</div>
+        </div>
+        <div class="import-step-row" data-import-step="1">
+          <div class="import-step-icon">2</div>
+          <div>自动映射：Excel 列 → 系统数据字段</div>
+        </div>
+        <div class="import-step-row" data-import-step="2">
+          <div class="import-step-icon">3</div>
+          <div>格式校验：52 条记录通过，0 条异常</div>
+        </div>
+        <div class="import-step-row" data-import-step="3">
+          <div class="import-step-icon">4</div>
+          <div>写入数据库：成绩记录已关联到对应学生</div>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div class="import-result-area" id="importResultArea">
+        <div class="import-result-header">
+          <div class="import-result-title">导入预览</div>
+          <div class="import-result-count">共 52 条记录</div>
+        </div>
+        <table class="import-table">
+          <thead>
+            <tr>
+              <th>姓名</th>
+              <th>班级</th>
+              <th>语文</th>
+              <th>数学</th>
+              <th>英语</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>张小明</strong></td>
+              <td>九年级一班</td>
+              <td>85</td>
+              <td>92</td>
+              <td>78</td>
+              <td><span class="tag" style="background:#d1fae5;color:#059669">已导入</span></td>
+            </tr>
+            <tr>
+              <td><strong>李雨桐</strong></td>
+              <td>九年级一班</td>
+              <td>88</td>
+              <td>76</td>
+              <td>91</td>
+              <td><span class="tag" style="background:#d1fae5;color:#059669">已导入</span></td>
+            </tr>
+            <tr>
+              <td><strong>王浩然</strong></td>
+              <td>九年级二班</td>
+              <td>79</td>
+              <td>68</td>
+              <td>82</td>
+              <td><span class="tag" style="background:#d1fae5;color:#059669">已导入</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const messageList = document.getElementById('messageList');
+    const chatOverlay = document.getElementById('chatOverlay');
+    const importOverlay = document.getElementById('importOverlay');
+    let chatDemoRunning = false;
+    let importDemoRunning = false;
+
+    const DEMO_SCRIPT = [
+      {
+        type: 'user',
+        text: '帮我看看最近班上成绩波动大的学生',
+        delay: 600
+      },
+      {
+        type: 'thinking',
+        steps: [
+          { text: '解析用户意图：查询成绩波动大的学生', detail: 'intent=score_volatility | entity=student | scope=recent' },
+          { text: '构建查询：获取最近 3 次考试的所有成绩记录', detail: 'SELECT exam_id, student_id, subject, score FROM exam_scores WHERE exam_id IN (...) ORDER BY exam_date DESC' },
+          { text: '计算每位学生的成绩方差和班级排名变化', detail: 'aggregate: stddev(score), rank_delta per student across 3 exams' },
+          { text: '设定阈值：筛选排名下滑超过 5 名或分数下降超过 10 分的学生', detail: 'filter: rank_delta >= 5 OR score_drop >= 10' },
+          { text: '交叉比对表现记录，标记是否有负向行为信号', detail: 'JOIN performance_records ON student_id WHERE sentiment=negative AND date >= 30d' },
+          { text: '生成结论：3 名学生符合波动条件，其中 2 名有风险信号', detail: 'result_count=3 | risk_count=2 | ready_to_respond' }
+        ],
+        delay: 800
+      },
+      {
+        type: 'assistant',
+        text: '根据最近三次考试数据，我发现了以下值得关注的学生：',
+        hasTable: true,
+        hasActions: true,
+        delay: 500
+      }
+    ];
+
+    function createMessageHTML(msg) {
+      if (msg.type === 'user') {
+        return `
+          <div class="message-row message-row--user" style="animation-delay: 0s">
+            <div class="message-bubble">
+              <div class="message-role">用户</div>
+              <div class="message-content"><span class="cursor"></span></div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (msg.type === 'thinking') {
+        const stepsHTML = msg.steps.map((step, i) => `
+          <div class="thinking-step" data-step="${i}">
+            <div class="step-icon">${i + 1}</div>
+            <div class="step-text">
+              ${step.text}
+              ${step.detail ? `<div class="step-detail">${step.detail}</div>` : ''}
+            </div>
+          </div>
+        `).join('');
+
+        return `
+          <div class="message-row message-row--assistant" style="animation-delay: 0s">
+            <div class="message-bubble">
+              <div class="message-role">助手 · 思考中</div>
+              <div class="thinking-block" id="thinkingBlock">
+                <div class="thinking-header">
+                  <div class="thinking-spinner"></div>
+                  正在分析数据...
+                </div>
+                ${stepsHTML}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (msg.type === 'assistant') {
+        let tableHTML = '';
+        if (msg.hasTable) {
+          tableHTML = `
+            <table class="result-table">
+              <thead>
+                <tr>
+                  <th>学生</th>
+                  <th>班级</th>
+                  <th>波动科目</th>
+                  <th>变化幅度</th>
+                  <th>风险标签</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>张小明</strong></td>
+                  <td>九年级一班</td>
+                  <td>数学、英语</td>
+                  <td style="color:#dc2626">↓ 23 分</td>
+                  <td><span class="tag tag--danger">连续下滑</span></td>
+                </tr>
+                <tr>
+                  <td><strong>李雨桐</strong></td>
+                  <td>九年级一班</td>
+                  <td>物理</td>
+                  <td style="color:#d97706">↓ 15 分</td>
+                  <td><span class="tag tag--warning">单科波动</span></td>
+                </tr>
+                <tr>
+                  <td><strong>王浩然</strong></td>
+                  <td>九年级二班</td>
+                  <td>数学</td>
+                  <td style="color:#dc2626">↓ 28 分</td>
+                  <td><span class="tag tag--danger">需关注</span></td>
+                </tr>
+              </tbody>
+            </table>
+          `;
+        }
+
+        let actionsHTML = '';
+        if (msg.hasActions) {
+          actionsHTML = `
+            <div class="action-bar">
+              <button class="action-btn action-btn--primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                生成家校沟通草稿
+              </button>
+              <button class="action-btn action-btn--secondary" data-action="confirm-write">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                添加关注标记
+              </button>
+              <button class="action-btn action-btn--secondary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                查看详细趋势
+              </button>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="message-row message-row--assistant" style="animation-delay: 0s">
+            <div class="message-bubble">
+              <div class="message-role">助手</div>
+              <div class="message-content"><span class="cursor"></span></div>
+              ${tableHTML}
+              <p style="margin-top:12px;font-size:13px;color:var(--text-secondary);">建议：张小明和王浩然近期有负向表现记录，可优先安排家校沟通。李雨桐为单科波动，建议先了解近期学习状态。</p>
+              ${actionsHTML}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    async function typeText(element, text, speed = 35) {
+      const cursor = element.querySelector('.cursor');
+      let i = 0;
+      const node = document.createTextNode('');
+      element.insertBefore(node, cursor);
+      while (i < text.length) {
+        node.textContent += text[i];
+        i++;
+        await sleep(speed);
+      }
+      if (cursor) cursor.remove();
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function scrollToBottom() {
+      messageList.scrollTo({ top: messageList.scrollHeight, behavior: 'smooth' });
+    }
+
+    async function runDemo() {
+      if (!chatDemoRunning) return;
+      chatOverlay.classList.add('hidden');
+
+      // Clear
+      messageList.innerHTML = '';
+
+      // Step 1: User message
+      const userWrapper = document.createElement('div');
+      userWrapper.innerHTML = createMessageHTML(DEMO_SCRIPT[0]);
+      messageList.appendChild(userWrapper.firstElementChild);
+      const userBubble = messageList.lastElementChild.querySelector('.message-content');
+      await typeText(userBubble, DEMO_SCRIPT[0].text);
+
+      // Pause here so user can read the input
+      await sleep(1000);
+
+      // Step 2: Thinking block
+      const thinkingWrapper = document.createElement('div');
+      thinkingWrapper.innerHTML = createMessageHTML(DEMO_SCRIPT[1]);
+      messageList.appendChild(thinkingWrapper.firstElementChild);
+      scrollToBottom();
+      await sleep(600);
+
+      const steps = messageList.lastElementChild.querySelectorAll('.thinking-step');
+      for (let i = 0; i < steps.length; i++) {
+        await sleep(700);
+        steps[i].classList.add('show');
+
+        if (i > 0) {
+          const prevIcon = steps[i - 1].querySelector('.step-icon');
+          prevIcon.classList.add('done');
+          prevIcon.textContent = '✓';
+        }
+      }
+
+      // Last step done
+      await sleep(700);
+      const lastIcon = steps[steps.length - 1].querySelector('.step-icon');
+      lastIcon.classList.add('done');
+      lastIcon.textContent = '✓';
+
+      await sleep(600);
+
+      // Step 3: Assistant response
+      const assistWrapper = document.createElement('div');
+      assistWrapper.innerHTML = createMessageHTML(DEMO_SCRIPT[2]);
+      messageList.appendChild(assistWrapper.firstElementChild);
+      scrollToBottom();
+      const assistBubble = messageList.lastElementChild.querySelector('.message-content');
+      await typeText(assistBubble, DEMO_SCRIPT[2].text, 30);
+      scrollToBottom();
+
+      await sleep(1200);
+
+      // Step 4: AI proactive suggestion (behavioral record)
+      const suggestWrapper = document.createElement('div');
+      suggestWrapper.innerHTML = `
+        <div class="message-row message-row--assistant" style="animation-delay: 0s">
+          <div class="message-bubble">
+            <div class="message-role">助手</div>
+            <div class="message-content"><span class="cursor"></span></div>
+            <div class="action-bar" style="margin-top:12px;">
+              <button class="action-btn action-btn--primary" id="suggestRecordBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                是的，添加记录
+              </button>
+              <button class="action-btn action-btn--secondary" id="skipRecordBtn">不用了</button>
+            </div>
+          </div>
+        </div>
+      `;
+      messageList.appendChild(suggestWrapper.firstElementChild);
+      scrollToBottom();
+      const suggestBubble = messageList.lastElementChild.querySelector('.message-content');
+      await typeText(suggestBubble, '我注意到张小明近期有负向行为信号，是否需要为他添加一条表现记录？', 30);
+      scrollToBottom();
+
+      await sleep(1200);
+
+      // Step 5: Highlight and click "add record"
+      const suggestRecordBtn = document.getElementById('suggestRecordBtn');
+      if (suggestRecordBtn) suggestRecordBtn.classList.add('action-btn--highlight');
+      scrollToBottom();
+      await sleep(600);
+      if (suggestRecordBtn) {
+        suggestRecordBtn.style.transform = 'scale(0.96)';
+        await sleep(150);
+        suggestRecordBtn.style.transform = '';
+        suggestRecordBtn.classList.remove('action-btn--highlight');
+      }
+      const skipRecordBtn = document.getElementById('skipRecordBtn');
+      if (skipRecordBtn) skipRecordBtn.style.opacity = '0.5';
+      await sleep(400);
+
+      // Step 6: Show write confirmation card
+      const confirmCard = document.createElement('div');
+      confirmCard.className = 'confirm-card';
+      confirmCard.innerHTML = `
+        <div class="confirm-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          确认写入操作
+        </div>
+        <div class="confirm-body">
+          <div class="confirm-row"><span class="confirm-label">学生</span><span class="confirm-value">张小明</span></div>
+          <div class="confirm-row"><span class="confirm-label">记录类型</span><span class="confirm-value">表现记录</span></div>
+          <div class="confirm-row"><span class="confirm-label">内容</span><span class="confirm-value">近期数学成绩连续下滑，课堂注意力下降</span></div>
+          <div class="confirm-row"><span class="confirm-label">关联</span><span class="confirm-value">数学月考3（↓23分）</span></div>
+        </div>
+        <div class="confirm-actions">
+          <button class="confirm-btn confirm-btn--primary" id="confirmBtn">确认添加</button>
+          <button class="confirm-btn confirm-btn--secondary">取消</button>
+        </div>
+      `;
+      messageList.lastElementChild.querySelector('.message-bubble').appendChild(confirmCard);
+      scrollToBottom();
+      await sleep(50);
+      confirmCard.classList.add('show');
+      scrollToBottom();
+
+      await sleep(2200);
+
+      // Step 7: Confirm clicked
+      const confirmBtn = document.getElementById('confirmBtn');
+      if (confirmBtn) {
+        confirmBtn.style.transform = 'scale(0.96)';
+        await sleep(150);
+        confirmBtn.style.transform = '';
+      }
+      confirmCard.style.opacity = '0';
+      confirmCard.style.transform = 'translateY(-8px)';
+      await sleep(400);
+      confirmCard.remove();
+
+      // Step 8: Success message
+      const successWrapper = document.createElement('div');
+      successWrapper.innerHTML = `
+        <div class="message-row success-row" style="animation-delay: 0s">
+          <div class="success-bubble">
+            <div class="success-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              写入成功
+            </div>
+            <div>已为张小明添加<strong>表现记录</strong>，系统将在下次成绩更新时自动提醒。</div>
+          </div>
+        </div>
+      `;
+      messageList.appendChild(successWrapper.firstElementChild);
+      scrollToBottom();
+
+      // Show overlay to replay
+      await sleep(3000);
+      chatOverlay.classList.remove('hidden');
+      chatDemoRunning = false;
+    }
+
+    chatOverlay.addEventListener('click', () => {
+      if (chatDemoRunning) return;
+      chatDemoRunning = true;
+      runDemo();
+    });
+
+    // Scene card expand
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.scene-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const isExpanded = card.classList.contains('expanded');
+          document.querySelectorAll('.scene-card').forEach(c => c.classList.remove('expanded'));
+          if (!isExpanded) {
+            card.classList.add('expanded');
+          }
+        });
+      });
+    });
+
+    // === Import Demo ===
+    const dropzone = document.getElementById('dropzone');
+    const clickRipple = document.getElementById('clickRipple');
+    const progressArea = document.getElementById('progressArea');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const importStepsArea = document.getElementById('importStepsArea');
+    const importResultArea = document.getElementById('importResultArea');
+
+    const IMPORT_STEPS_TEXT = [
+      { pct: 15, label: '上传文件... 15%' },
+      { pct: 35, label: '识别字段... 35%' },
+      { pct: 55, label: '自动映射... 55%' },
+      { pct: 75, label: '格式校验... 75%' },
+      { pct: 92, label: '写入数据库... 92%' },
+      { pct: 100, label: '导入完成' }
+    ];
+
+    async function runImportDemo() {
+      if (!importDemoRunning) return;
+      importOverlay.classList.add('hidden');
+
+      // Reset
+      dropzone.style.display = 'block';
+      dropzone.classList.remove('active');
+      clickRipple.classList.remove('animate');
+      progressArea.classList.remove('show');
+      progressFill.style.width = '0%';
+      importStepsArea.classList.remove('show');
+      importResultArea.classList.remove('show');
+      importStepsArea.querySelectorAll('.import-step-row').forEach(s => {
+        s.classList.remove('show');
+        const icon = s.querySelector('.import-step-icon');
+        icon.classList.remove('done');
+        icon.textContent = icon.parentElement.dataset.importStep ? String(parseInt(icon.parentElement.dataset.importStep) + 1) : '1';
+      });
+
+      await sleep(800);
+
+      // Click ripple animation
+      clickRipple.classList.add('animate');
+      dropzone.classList.add('active');
+      await sleep(600);
+
+      // Hide dropzone, show progress
+      dropzone.style.display = 'none';
+      progressArea.classList.add('show');
+
+      // Animate progress bar
+      for (const step of IMPORT_STEPS_TEXT) {
+        progressFill.style.width = step.pct + '%';
+        progressText.innerHTML = `<div class="progress-spinner"></div>${step.label}`;
+        await sleep(400);
+      }
+
+      await sleep(300);
+
+      // Show import steps
+      progressArea.classList.remove('show');
+      importStepsArea.classList.add('show');
+
+      const stepRows = importStepsArea.querySelectorAll('.import-step-row');
+      for (let i = 0; i < stepRows.length; i++) {
+        await sleep(500);
+        stepRows[i].classList.add('show');
+
+        if (i > 0) {
+          const prevIcon = stepRows[i - 1].querySelector('.import-step-icon');
+          prevIcon.classList.add('done');
+          prevIcon.textContent = '✓';
+        }
+      }
+
+      // Last step done
+      await sleep(400);
+      const lastIcon = stepRows[stepRows.length - 1].querySelector('.import-step-icon');
+      lastIcon.classList.add('done');
+      lastIcon.textContent = '✓';
+
+      await sleep(400);
+
+      // Show result
+      importResultArea.classList.add('show');
+
+      // Show overlay to replay
+      await sleep(3000);
+      importOverlay.classList.remove('hidden');
+      importDemoRunning = false;
+    }
+
+    importOverlay.addEventListener('click', () => {
+      if (importDemoRunning) return;
+      importDemoRunning = true;
+      runImportDemo();
+    });
+  </script>
+
+  <!-- RBAC Demo -->
+  <section class="rbac-section">
+    <h2 class="scenes-title">多角色权限管理</h2>
+    <p class="scenes-subtitle">不同角色看到不同功能和数据，员工协作不越权。</p>
+
+    <div class="rbac-wrapper" id="rbacWrapper">
+      <!-- Play Overlay -->
+      <div class="demo-overlay" id="rbacOverlay">
+        <button class="demo-overlay-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </button>
+        <div class="demo-overlay-text">点击演示权限切换</div>
+      </div>
+
+      <div class="rbac-tabs" id="rbacTabs">
+        <div class="rbac-tab active" data-role="admin">👨‍💼 管理员</div>
+        <div class="rbac-tab" data-role="teacher">👩‍🏫 教师</div>
+        <div class="rbac-tab" data-role="staff">💁 前台</div>
+      </div>
+
+      <div class="rbac-content active" data-role="admin">
+        <div class="rbac-menu">
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">📊</div><div>数据看板</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">👤</div><div>账户管理</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">📝</div><div>成绩录入</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">📋</div><div>表现记录</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">💬</div><div>家校沟通</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">⚙️</div><div>系统设置</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+        </div>
+      </div>
+
+      <div class="rbac-content" data-role="teacher">
+        <div class="rbac-menu">
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">📊</div><div>数据看板</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+          <div class="rbac-menu-item denied"><div class="rbac-icon" style="background:#f1f5f9">👤</div><div>账户管理</div><div class="rbac-status rbac-status--denied">隐藏</div></div>
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">📝</div><div>成绩录入</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">📋</div><div>表现记录</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">💬</div><div>家校沟通</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+          <div class="rbac-menu-item denied"><div class="rbac-icon" style="background:#f1f5f9">⚙️</div><div>系统设置</div><div class="rbac-status rbac-status--denied">隐藏</div></div>
+        </div>
+      </div>
+
+      <div class="rbac-content" data-role="staff">
+        <div class="rbac-menu">
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">📊</div><div>数据看板</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+          <div class="rbac-menu-item denied"><div class="rbac-icon" style="background:#f1f5f9">👤</div><div>账户管理</div><div class="rbac-status rbac-status--denied">隐藏</div></div>
+          <div class="rbac-menu-item denied"><div class="rbac-icon" style="background:#f1f5f9">📝</div><div>成绩录入</div><div class="rbac-status rbac-status--denied">隐藏</div></div>
+          <div class="rbac-menu-item allowed"><div class="rbac-icon" style="background:#d8f4ef">📋</div><div>表现记录</div><div class="rbac-status rbac-status--allowed">可见</div></div>
+          <div class="rbac-menu-item denied"><div class="rbac-icon" style="background:#f1f5f9">💬</div><div>家校沟通</div><div class="rbac-status rbac-status--denied">隐藏</div></div>
+          <div class="rbac-menu-item denied"><div class="rbac-icon" style="background:#f1f5f9">⚙️</div><div>系统设置</div><div class="rbac-status rbac-status--denied">隐藏</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chart Demo -->
+  <section class="chart-section">
+    <h2 class="scenes-title">数据可视化分析</h2>
+    <p class="scenes-subtitle">成绩分布、趋势追踪、分层对比，数据一目了然。</p>
+
+    <div class="chart-wrapper" id="chartWrapper">
+      <!-- Play Overlay -->
+      <div class="demo-overlay" id="chartOverlay">
+        <button class="demo-overlay-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </button>
+        <div class="demo-overlay-text">点击演示图表生成</div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-box">
+          <div class="chart-box-title">班级成绩分布</div>
+          <div class="bar-chart" id="barChart">
+            <div class="bar-item">
+              <div class="bar-fill" style="height:0%; background: linear-gradient(180deg, #ef4444, #dc2626);" data-height="12%"><span class="bar-value">3人</span></div>
+              <span class="bar-label"><60</span>
+            </div>
+            <div class="bar-item">
+              <div class="bar-fill" style="height:0%; background: linear-gradient(180deg, #f59e0b, #d97706);" data-height="28%"><span class="bar-value">8人</span></div>
+              <span class="bar-label">60-70</span>
+            </div>
+            <div class="bar-item">
+              <div class="bar-fill" style="height:0%; background: linear-gradient(180deg, #15a89d, #007f78);" data-height="52%"><span class="bar-value">18人</span></div>
+              <span class="bar-label">70-80</span>
+            </div>
+            <div class="bar-item">
+              <div class="bar-fill" style="height:0%; background: linear-gradient(180deg, #0f766e, #075e58);" data-height="38%"><span class="bar-value">15人</span></div>
+              <span class="bar-label">80-90</span>
+            </div>
+            <div class="bar-item">
+              <div class="bar-fill" style="height:0%; background: linear-gradient(180deg, #10b981, #059669);" data-height="16%"><span class="bar-value">5人</span></div>
+              <span class="bar-label">≥90</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-box">
+          <div class="chart-box-title">数学成绩趋势</div>
+          <div class="line-chart">
+            <svg viewBox="0 0 280 160" preserveAspectRatio="none">
+              <path class="line-area" id="lineArea" d="M 10 140 L 60 110 L 110 120 L 160 75 L 210 60 L 260 45 L 260 160 L 10 160 Z"></path>
+              <path class="line-path" id="linePath" d="M 10 140 L 60 110 L 110 120 L 160 75 L 210 60 L 260 45"></path>
+              <circle class="line-dot" cx="10" cy="140"></circle>
+              <circle class="line-dot" cx="60" cy="110"></circle>
+              <circle class="line-dot" cx="110" cy="120"></circle>
+              <circle class="line-dot" cx="160" cy="75"></circle>
+              <circle class="line-dot" cx="210" cy="60"></circle>
+              <circle class="line-dot" cx="260" cy="45"></circle>
+            </svg>
+            <div class="line-labels">
+              <span class="line-label">月考1</span>
+              <span class="line-label">月考2</span>
+              <span class="line-label">期中</span>
+              <span class="line-label">月考3</span>
+              <span class="line-label">月考4</span>
+              <span class="line-label">期末</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // === RBAC Demo ===
+    const rbacOverlay = document.getElementById('rbacOverlay');
+    let rbacDemoRunning = false;
+
+    async function runRbacDemo() {
+      if (!rbacDemoRunning) return;
+      rbacOverlay.classList.add('hidden');
+
+      const tabs = document.querySelectorAll('.rbac-tab');
+      const contents = document.querySelectorAll('.rbac-content');
+      const roles = ['admin', 'teacher', 'staff'];
+
+      // Reset: show admin tab, hide all menu items
+      tabs.forEach(t => t.classList.remove('active'));
+      contents.forEach(c => c.classList.remove('active'));
+      document.querySelector('.rbac-tab[data-role="admin"]').classList.add('active');
+      document.querySelector('.rbac-content[data-role="admin"]').classList.add('active');
+      document.querySelectorAll('.rbac-menu-item').forEach(item => item.classList.remove('show'));
+
+      await sleep(500);
+
+      for (const role of roles) {
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+        document.querySelector(`.rbac-tab[data-role="${role}"]`).classList.add('active');
+        document.querySelector(`.rbac-content[data-role="${role}"]`).classList.add('active');
+
+        const items = document.querySelectorAll(`.rbac-content[data-role="${role}"] .rbac-menu-item`);
+        for (let i = 0; i < items.length; i++) {
+          await sleep(120);
+          items[i].classList.add('show');
+        }
+
+        await sleep(1200);
+      }
+
+      await sleep(2000);
+      rbacOverlay.classList.remove('hidden');
+      rbacDemoRunning = false;
+    }
+
+    rbacOverlay.addEventListener('click', () => {
+      if (rbacDemoRunning) return;
+      rbacDemoRunning = true;
+      runRbacDemo();
+    });
+
+    // Initialize admin items visible
+    document.querySelectorAll('.rbac-content[data-role="admin"] .rbac-menu-item').forEach(item => item.classList.add('show'));
+
+    // === Chart Demo ===
+    const chartOverlay = document.getElementById('chartOverlay');
+    let chartDemoRunning = false;
+
+    async function runChartDemo() {
+      if (!chartDemoRunning) return;
+      chartOverlay.classList.add('hidden');
+
+      // Reset bars
+      document.querySelectorAll('.bar-fill').forEach(bar => {
+        bar.style.height = '0%';
+        bar.classList.remove('show');
+      });
+
+      // Reset line chart
+      document.getElementById('linePath').classList.remove('show');
+      document.getElementById('lineArea').classList.remove('show');
+      document.querySelectorAll('.line-dot').forEach(dot => dot.classList.remove('show'));
+
+      await sleep(400);
+
+      // Animate bars
+      const bars = document.querySelectorAll('.bar-fill');
+      for (const bar of bars) {
+        const targetHeight = bar.dataset.height;
+        bar.style.height = targetHeight;
+        bar.classList.add('show');
+        await sleep(200);
+      }
+
+      await sleep(300);
+
+      // Animate line chart
+      document.getElementById('linePath').classList.add('show');
+      document.getElementById('lineArea').classList.add('show');
+
+      const dots = document.querySelectorAll('.line-dot');
+      for (let i = 0; i < dots.length; i++) {
+        await sleep(150);
+        dots[i].classList.add('show');
+      }
+
+      await sleep(3000);
+      chartOverlay.classList.remove('hidden');
+      chartDemoRunning = false;
+    }
+
+    chartOverlay.addEventListener('click', () => {
+      if (chartDemoRunning) return;
+      chartDemoRunning = true;
+      runChartDemo();
+    });
+  </script>
+
+  <!-- Scene Cards -->
+  <section class="scenes-section">
+    <h2 class="scenes-title">同一套能力，适配不同行业</h2>
+    <p class="scenes-subtitle">教师助手只是其中一个场景。底层技术可以迁移到任何数据驱动的业务。<br>点击卡片查看对应的后端技术能力。</p>
+
+    <div class="scene-cards">
+      <div class="scene-card" data-scene="retail">
+        <div class="scene-icon" style="background: #fee2e2;">🍽️</div>
+        <h3>餐饮 / 零售</h3>
+        <p>"最近一周哪些菜品销量下滑？"<br>"会员消费频次下降的客户有哪些？"<br>AI 自动分析营业数据，给出营销建议。</p>
+        <div class="scene-arrow">
+          查看对应能力
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+        <div class="scene-expand">
+          <ul class="tech-list">
+            <li><span class="tech-badge">数据查询</span><span class="tech-desc">自然语言转结构化查询，自动关联订单、会员、库存多张数据表</span></li>
+            <li><span class="tech-badge">趋势分析</span><span class="tech-desc">时间序列聚合 + 同比环比计算，识别销量/客单价异常波动</span></li>
+            <li><span class="tech-badge">任务调度</span><span class="tech-desc">异步报表生成 + 实时进度推送，大数据量不卡顿</span></li>
+            <li><span class="tech-badge">消息触达</span><span class="tech-desc">根据分析结论自动生成营销文案，一键推送给目标客群</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="scene-card" data-scene="clinic">
+        <div class="scene-icon" style="background: #d8f4ef;">🏥</div>
+        <h3>诊所 / 健康</h3>
+        <p>"哪些患者复诊周期异常？"<br>"本月预约取消率最高的时段是？"<br>从预约记录中自动识别风险患者。</p>
+        <div class="scene-arrow">
+          查看对应能力
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+        <div class="scene-expand">
+          <ul class="tech-list">
+            <li><span class="tech-badge">风险识别</span><span class="tech-desc">多维度数据交叉验证（预约间隔 + 就诊频次 + 用药记录）</span></li>
+            <li><span class="tech-badge">自然语言</span><span class="tech-desc">医生口头描述直接解析为结构化病历标签，无需手动填写表单</span></li>
+            <li><span class="tech-badge">权限管理</span><span class="tech-desc">多角色访问控制（医生/护士/前台），数据隔离 + 操作审计</span></li>
+            <li><span class="tech-badge">提醒引擎</span><span class="tech-desc">基于规则的自动提醒 + 基于 AI 的异常预警双轨并行</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="scene-card" data-scene="factory">
+        <div class="scene-icon" style="background: #d1fae5;">🏭</div>
+        <h3>小型工厂 / 贸易</h3>
+        <p>"哪些供应商交货延迟超过 3 次？"<br>"库存周转最慢的品类是？"<br>把进销存数据变成可执行的洞察。</p>
+        <div class="scene-arrow">
+          查看对应能力
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+        <div class="scene-expand">
+          <ul class="tech-list">
+            <li><span class="tech-badge">数据导入</span><span class="tech-desc">Excel/CSV 智能识别 + 字段自动映射，历史数据一键迁移</span></li>
+            <li><span class="tech-badge">库存分析</span><span class="tech-desc">ABC 分类 + 周转率计算 + 安全库存预警，自动生成补货建议</span></li>
+            <li><span class="tech-badge">供应商评估</span><span class="tech-desc">交货准时率、质量合格率、价格波动多指标加权评分模型</span></li>
+            <li><span class="tech-badge">文档解析</span><span class="tech-desc">合同/单据扫描件 OCR + LLM 结构化提取，告别手工录入</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="scene-card" data-scene="edu">
+        <div class="scene-icon" style="background: #fef3c7;">📚</div>
+        <h3>教育 / 培训</h3>
+        <p>"最近成绩波动大的学生有哪些？"<br>"哪个知识点的错题率最高？"<br>自然语言查询成绩、生成沟通建议。</p>
+        <div class="scene-arrow">
+          查看对应能力
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+        <div class="scene-expand">
+          <ul class="tech-list">
+            <li><span class="tech-badge">Agent 引擎</span><span class="tech-desc">多步推理规划 → 工具调用 → 结果合成，不是简单问答</span></li>
+            <li><span class="tech-badge">成绩分析</span><span class="tech-desc">分层统计 + 趋势追踪 + 进退步排名，班级/个人多维对比</span></li>
+            <li><span class="tech-badge">知识图谱</span><span class="tech-desc">题目-知识点关联树 + 错题归因，定位薄弱知识环节</span></li>
+            <li><span class="tech-badge">智能生成</span><span class="tech-desc">基于数据上下文自动生成评语、沟通草稿、表现记录</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="case-footer">
+    <div class="case-footer-panel">
+      <div>
+        <h2>Want this adapted to your own business workflow?</h2>
+        <p>DDRZH can turn spreadsheets, internal data and repetitive staff questions into a branded assistant, dashboard or portal flow that fits your operation.</p>
+      </div>
+      <div class="case-footer-actions">
+        <a class="case-cta" href="index.html#trial">Request the free first version</a>
+        <a class="case-back" href="index.html#case-studies">View more case studies</a>
+      </div>
+    </div>
+  </section>
+  </div>
+
+</body>
+</html>
