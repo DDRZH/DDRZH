@@ -3,6 +3,12 @@
     "public": ".",
     "ignore": [
       "firebase.json",
+      "firebase.deploy.json",
+      "SECURE_CONTACT_DEPLOY.md",
+      "functions/**",
+      "print-exports/**",
+      "ren-zihan-name-card.html",
+      "ren-zihan-name-card-preview.png",
       "**/.*",
       "**/.firebase/**",
       "**/.git/**",
