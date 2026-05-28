@@ -118,6 +118,36 @@
     "Keep customer information, business knowledge and AI assistant context handled with care.":
       "谨慎处理客户信息、业务知识和 AI 助手上下文。",
 
+    "Case studies": "案例展示",
+    "Show clients how the system works before they buy it.": "在客户购买前，先把系统如何运作展示给他们看。",
+    "This portal can lead visitors into focused demos. The first example below shows a teaching assistant that turns school data into a conversational AI workflow.":
+      "这个门户可以把访客引导进聚焦式演示。下面的第一个案例展示了一个教学助手，如何把学校数据变成可对话的 AI 工作流。",
+    "Featured case": "精选案例",
+    "Teaching assistant demo": "教学助手演示",
+    "A full case page with AI chat simulation, spreadsheet import, role-based access control and analytics views. It shows how DDRZH can package a practical workflow into a client-facing product demo.":
+      "这是一个完整的案例页面，包含 AI 对话模拟、表格导入、基于角色的权限控制和分析视图，展示 DDRZH 如何把实际工作流打包成可面向客户演示的产品 Demo。",
+    "Case highlights": "案例亮点",
+    "Natural-language questions over historical data": "用自然语言查询历史数据",
+    "Excel and CSV onboarding with field mapping": "支持 Excel 和 CSV 导入及字段映射",
+    "Reusable for education, retail, clinics and operations": "可复用于教育、零售、诊所和运营场景",
+    "Open case study": "打开案例详情",
+    "Build a version for my business": "为我的业务定制一个版本",
+    "Teaching assistant": "教学助手",
+    "AI classroom copilot": "AI 课堂副驾",
+    "Live analysis": "实时分析中",
+    "Ask about student progress, scores or next actions": "可提问学生进度、分数或下一步建议",
+    "Students synced": "已同步学生",
+    "Needs follow-up": "需要跟进",
+    "Attendance this week": "本周出勤率",
+    "Teacher": "教师",
+    "AI assistant": "AI 助手",
+    "Which students slipped below 70 in maths this month?": "这个月数学成绩跌破 70 分的学生有哪些？",
+    "Three students are below 70. Liam fell the most, from 78 to 64. I can group them by class and suggest follow-up actions.":
+      "目前有 3 名学生低于 70 分。Liam 降幅最大，从 78 分降到 64 分。我可以按班级分组，并给出后续跟进建议。",
+    "Show me the ones with low attendance too.": "再把出勤率偏低的学生也一起列出来。",
+    "Two of those students also dropped below 92% attendance this week. I have prepared a parent-contact draft and a revision plan for Friday.":
+      "其中有 2 名学生本周出勤率也低于 92%。我已经准备好家长联系草稿和周五的复习计划。",
+
     "Working method": "工作方法",
     "Start simple, then customise around the real workflow.": "从简单开始，再围绕真实工作流定制。",
     "The first version proves the direction quickly. After that, the product is shaped around your data, customers, staff responsibilities and growth goals.":

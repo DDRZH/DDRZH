@@ -18,6 +18,8 @@ const wizardCloseButtons = document.querySelectorAll("[data-wizard-close]");
 const gdprBanner = document.querySelector("[data-gdpr-banner]");
 const gdprAccept = document.querySelector("[data-gdpr-accept]");
 const gdprReject = document.querySelector("[data-gdpr-reject]");
+const casePreviewChat = document.querySelector("[data-case-preview-chat]");
+const casePreviewPrompt = document.querySelector("[data-case-preview-prompt]");
 const emailJsConfig = window.DDRZH_EMAILJS_CONFIG || {};
 const EMAILJS_SEND_URL = "https://api.emailjs.com/api/v1.0/email/send";
 const MINIMUM_FORM_TIME_MS = 6000;
@@ -77,6 +79,27 @@ const projectQuestions = [
 let wizardStep = 0;
 let projectAnswers = {};
 let wizardOpenedAt = 0;
+let casePreviewTimer = null;
+let casePreviewTrack = null;
+
+const casePreviewMessages = [
+  {
+    role: "Teacher",
+    text: "Which students slipped below 70 in maths this month?"
+  },
+  {
+    role: "AI assistant",
+    text: "Three students are below 70. Liam fell the most, from 78 to 64. I can group them by class and suggest follow-up actions."
+  },
+  {
+    role: "Teacher",
+    text: "Show me the ones with low attendance too."
+  },
+  {
+    role: "AI assistant",
+    text: "Two of those students also dropped below 92% attendance this week. I have prepared a parent-contact draft and a revision plan for Friday."
+  }
+];
 
 const loadProjectAnswers = () => {
   if (safeStorage.get("ddrzh-gdpr-choice") !== "accepted") return;
@@ -195,6 +218,128 @@ const buildProjectEnquiry = () => {
   const name = projectAnswers[1] ? ` from ${projectAnswers[1]}` : "";
   const subject = `${translateText("Project enquiry")}${name}`;
   return { body, subject };
+};
+
+const clearCasePreviewTimer = () => {
+  window.clearTimeout(casePreviewTimer);
+  casePreviewTimer = null;
+};
+
+const ensureCasePreviewTrack = () => {
+  if (!casePreviewChat) return null;
+  if (!casePreviewTrack) {
+    casePreviewTrack = document.createElement("div");
+    casePreviewTrack.className = "case-preview-chat-track";
+    casePreviewChat.replaceChildren(casePreviewTrack);
+  }
+  return casePreviewTrack;
+};
+
+const syncCasePreviewScroll = () => {
+  if (!casePreviewChat || !casePreviewTrack) return;
+
+  const overflow = Math.max(0, casePreviewTrack.scrollHeight - casePreviewChat.clientHeight);
+  casePreviewTrack.style.transform = `translateY(-${overflow}px)`;
+};
+
+const scheduleCasePreview = (callback, delay) => {
+  clearCasePreviewTimer();
+  casePreviewTimer = window.setTimeout(callback, delay);
+};
+
+const resetCasePreview = () => {
+  const track = ensureCasePreviewTrack();
+  if (!track) return;
+
+  track.replaceChildren();
+  track.style.transform = "translateY(0)";
+  if (casePreviewPrompt) {
+    casePreviewPrompt.textContent = translateText("Ask about student progress, scores or next actions");
+  }
+};
+
+const addCasePreviewMessage = (message) => {
+  const track = ensureCasePreviewTrack();
+  if (!track) return null;
+
+  const item = document.createElement("div");
+  item.className = `case-chat-message case-chat-message-${message.role === "Teacher" ? "user" : "assistant"} is-visible`;
+
+  const role = document.createElement("span");
+  role.className = "case-chat-role";
+  role.textContent = translateText(message.role);
+
+  const bubble = document.createElement("div");
+  bubble.className = "case-chat-bubble";
+
+  item.append(role, bubble);
+  track.append(item);
+  syncCasePreviewScroll();
+  return bubble;
+};
+
+const typeCasePreviewMessage = (message, onComplete) => {
+  const bubble = addCasePreviewMessage(message);
+  if (!bubble) return;
+
+  const text = translateText(message.text);
+  let characterIndex = 0;
+
+  const typeNextCharacter = () => {
+    characterIndex += 1;
+    bubble.textContent = text.slice(0, characterIndex);
+    syncCasePreviewScroll();
+
+    if (characterIndex < text.length) {
+      const currentCharacter = text[characterIndex - 1];
+      const delay = /[\u3002\uff01\uff1f.!?,;:]/.test(currentCharacter) ? 46 : 24;
+      scheduleCasePreview(typeNextCharacter, delay);
+      return;
+    }
+
+    scheduleCasePreview(onComplete, 720);
+  };
+
+  scheduleCasePreview(typeNextCharacter, 140);
+};
+
+const startCasePreviewAnimation = () => {
+  if (!casePreviewChat) return;
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  clearCasePreviewTimer();
+  resetCasePreview();
+
+  if (reduceMotion) {
+    casePreviewMessages.forEach((message) => {
+      const bubble = addCasePreviewMessage(message);
+      if (bubble) {
+        bubble.textContent = translateText(message.text);
+      }
+    });
+    syncCasePreviewScroll();
+    return;
+  }
+
+  let messageIndex = 0;
+
+  const playNextMessage = () => {
+    if (messageIndex >= casePreviewMessages.length) {
+      scheduleCasePreview(() => {
+        messageIndex = 0;
+        resetCasePreview();
+        playNextMessage();
+      }, 1600);
+      return;
+    }
+
+    typeCasePreviewMessage(casePreviewMessages[messageIndex], () => {
+      messageIndex += 1;
+      playNextMessage();
+    });
+  };
+
+  playNextMessage();
 };
 
 const sendProjectEnquiry = async () => {
@@ -346,6 +491,8 @@ i18n?.onChange(() => {
   if (wizard?.classList.contains("is-open")) {
     renderWizardStep();
   }
+
+  startCasePreviewAnimation();
 });
 
 document.addEventListener("keydown", (event) => {
@@ -353,6 +500,8 @@ document.addEventListener("keydown", (event) => {
     closeWizard();
   }
 });
+
+startCasePreviewAnimation();
 
 if (canvas && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   const context = canvas.getContext("2d");
