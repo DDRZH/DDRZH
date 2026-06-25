@@ -1,6 +1,12 @@
 {
   "hosting": {
     "public": ".",
+    "rewrites": [
+      {
+        "source": "/api/ren-clone",
+        "function": "renClone"
+      }
+    ],
     "ignore": [
       "firebase.json",
       "firebase.deploy.json",

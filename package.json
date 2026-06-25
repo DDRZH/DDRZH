@@ -1,0 +1,13 @@
+{
+  "name": "ddrzh",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.cjs",
+    "start": "node server.cjs"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

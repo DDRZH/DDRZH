@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DDRZH Case Study | AI Clone</title>
+    <link rel="stylesheet" href="/ai-clone.css" />
+  </head>
+  <body class="ai-clone-page">
+    <div class="gate-shell" id="gateShell">
+      <section class="gate-panel" aria-labelledby="gateTitle">
+        <p class="gate-kicker">Protected case</p>
+        <h1 id="gateTitle">AI clone</h1>
+        <p class="gate-copy">
+          This demo is password protected. Enter the access code to open the conversation page.
+        </p>
+        <form class="gate-form" id="gateForm">
+          <label for="gatePassword">Password</label>
+          <input id="gatePassword" name="password" type="password" autocomplete="current-password" required />
+          <p class="gate-error" id="gateError" hidden>Password is incorrect.</p>
+          <div class="gate-actions">
+            <button type="submit" id="gateSubmit">Open AI clone</button>
+            <a class="gate-back" href="index.html#case-studies">Back to case studies</a>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <main class="app-shell" id="appShell" hidden>
+      <section class="workspace" aria-labelledby="page-title">
+        <header class="topbar">
+          <div class="page-heading">
+            <a class="back-link" href="index.html#case-studies">Back to DDRZH case studies</a>
+            <h1 id="page-title">Virtual Ren</h1>
+            <p class="page-copy">
+              A protected AI clone case page embedded inside DDRZH. Voice is currently disabled, so this version runs in text mode.
+            </p>
+          </div>
+        </header>
+
+        <section class="conversation" id="conversation" aria-label="Assistant conversation">
+          <div class="message assistant">
+            <span class="message-label">Virtual Ren</span>
+            <p>
+              Hi, this is a virtual consciousness of Ren. What would you like to talk about?
+            </p>
+          </div>
+        </section>
+
+        <form class="composer" id="askForm">
+          <label for="message">Say something</label>
+          <textarea
+            id="message"
+            name="message"
+            rows="5"
+            placeholder="For example: what matters most in entrepreneurship?"
+            required
+          ></textarea>
+          <label class="toggle-row" for="voiceToggle">
+            <span class="toggle-copy">
+              <span class="toggle-title">Voice</span>
+              <span class="toggle-hint" id="voiceHint">Disabled by server config</span>
+            </span>
+            <input type="checkbox" id="voiceToggle" name="voiceToggle" />
+          </label>
+          <div class="composer-actions">
+            <button type="submit" id="askButton">Send</button>
+            <button type="button" class="secondary" id="clearButton">Reset conversation</button>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script src="/ai-clone.js"></script>
+  </body>
+</html>

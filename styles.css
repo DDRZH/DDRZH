@@ -566,6 +566,11 @@ h3 {
   padding-top: 40px;
 }
 
+.case-stack {
+  display: grid;
+  gap: 24px;
+}
+
 .case-showcase {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.88fr);
@@ -682,6 +687,13 @@ h3 {
 .case-preview-screen-chat {
   display: grid;
   gap: 18px;
+}
+
+.case-preview-screen-lock {
+  display: grid;
+  gap: 18px;
+  min-height: 100%;
+  align-content: space-between;
 }
 
 .case-preview-header {
@@ -866,6 +878,26 @@ h3 {
   color: rgba(242, 255, 249, 0.66);
   font-size: 0.74rem;
   line-height: 1.35;
+}
+
+.case-lock-panel {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(156, 242, 200, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 18px;
+  color: rgba(242, 255, 249, 0.88);
+}
+
+.case-lock-panel strong {
+  color: #f2fff9;
+  font-size: 1rem;
+}
+
+.case-lock-panel span {
+  color: rgba(242, 255, 249, 0.7);
+  line-height: 1.6;
 }
 
 @keyframes case-status-pulse {

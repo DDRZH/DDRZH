@@ -6,6 +6,7 @@
   },
   "main": "index.js",
   "dependencies": {
+    "dotenv": "^16.4.7",
     "firebase-functions": "^6.4.0"
   }
 }

@@ -1,5 +1,6 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
+const { handleRenCloneRequest } = require("./ren-clone-handler");
 
 const EMAILJS_PUBLIC_KEY = defineSecret("EMAILJS_PUBLIC_KEY");
 const EMAILJS_PRIVATE_KEY = defineSecret("EMAILJS_PRIVATE_KEY");
@@ -168,4 +169,12 @@ exports.contact = onRequest(
 
     response.status(200).json({ ok: true });
   }
+);
+
+exports.renClone = onRequest(
+  {
+    region: "us-central1",
+    maxInstances: 4
+  },
+  handleRenCloneRequest
 );
