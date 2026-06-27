@@ -1,20 +1,47 @@
 require("dotenv").config({ path: "./functions/.env" });
 
 const path = require("node:path");
+const fs = require("node:fs");
 const express = require("express");
-const { handleRenCloneRequest } = require("./functions/ren-clone-handler");
 
 const projectRoot = __dirname;
 process.env.REN_CLONE_AUDIO_DIR = path.join(projectRoot, "audio");
 
-const app = express();
-app.use(express.json({ limit: "100kb" }));
-app.use(express.static(projectRoot));
-app.use("/audio", express.static(process.env.REN_CLONE_AUDIO_DIR));
+const { handleRenCloneRequest } = require("./functions/ren-clone-handler");
 
-app.all("/api/ren-clone", handleRenCloneRequest);
+const app = express();
+app.set("strict routing", true);
+app.use(express.json({ limit: "100kb" }));
+
+const BASE_PATH = "/ddrzh";
+
+app.get("/", (_request, response) => {
+  response.redirect(`${BASE_PATH}/`);
+});
+app.get(BASE_PATH, (_request, response) => {
+  response.redirect(`${BASE_PATH}/`);
+});
+
+app.use(`${BASE_PATH}/audio`, express.static(process.env.REN_CLONE_AUDIO_DIR));
+app.all(`${BASE_PATH}/api/ren-clone`, handleRenCloneRequest);
+
+app.get(`${BASE_PATH}/*`, (request, response, next) => {
+  const relativePath = request.params[0] || "";
+  const safeRelativePath = path.normalize(relativePath).replace(/^(\.\.(\/|\\|$))+/, "");
+  let filePath = path.join(projectRoot, safeRelativePath);
+
+  fs.stat(filePath, (error, stats) => {
+    if (error) return next();
+    if (stats.isDirectory()) {
+      filePath = path.join(filePath, "index.html");
+    }
+    response.sendFile(filePath, (sendError) => {
+      if (sendError) next();
+    });
+  });
+});
 
 const PORT = Number(process.env.PORT || 3000);
-app.listen(PORT, "127.0.0.1", () => {
-  console.log(`DDRZH dev server running at http://127.0.0.1:${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`DDRZH server running at http://0.0.0.0:${PORT}${BASE_PATH}/`);
 });

@@ -1,6 +1,6 @@
 const PASSWORD_VALUE = "ddrzh";
 const PASSWORD_STORAGE_KEY = "ddrzh-ai-clone-password";
-const API_URL = "/api/ren-clone";
+const API_URL = "api/ren-clone";
 const gateShell = document.querySelector("#gateShell");
 const gateForm = document.querySelector("#gateForm");
 const gatePasswordInput = document.querySelector("#gatePassword");

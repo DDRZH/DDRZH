@@ -22,7 +22,8 @@ const REN_CLONE_ALLOWED_ORIGINS = new Set([
   "http://localhost:8000",
   "http://127.0.0.1:8000",
   "http://localhost:3000",
-  "http://127.0.0.1:3000"
+  "http://127.0.0.1:3000",
+  "http://124.220.32.120"
 ]);
 
 const renCloneRequestCounts = new Map();
@@ -375,7 +376,7 @@ async function createSpeech(text) {
   const buffer = Buffer.from(await response.arrayBuffer());
   const filename = `${Date.now()}-${crypto.randomBytes(5).toString("hex")}.mp3`;
   await writeFile(path.join(audioDir, filename), buffer);
-  return `/audio/${filename}`;
+  return `audio/${filename}`;
 }
 
 async function handleRenCloneRequest(request, response) {

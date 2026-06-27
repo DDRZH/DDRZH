@@ -4,3 +4,4 @@ functions/node_modules/
 functions/.env
 firebase-debug.log
 gha-creds-*.json
+audio/
