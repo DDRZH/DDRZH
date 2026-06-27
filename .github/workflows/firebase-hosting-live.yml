@@ -19,11 +19,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
+        id: auth
         uses: google-github-actions/auth@v3
         with:
           project_id: ddrzh-31cb8
           workload_identity_provider: projects/638568977446/locations/global/workloadIdentityPools/github-actions/providers/github
           service_account: github-action-1236985295@ddrzh-31cb8.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
 
       - name: Deploy to Firebase Hosting
-        run: npx --yes firebase-tools@15.18.0 deploy --only hosting --project ddrzh-31cb8 --non-interactive
+        run: npx --yes firebase-tools@15.22.1 deploy --only hosting --project ddrzh-31cb8 --non-interactive
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
