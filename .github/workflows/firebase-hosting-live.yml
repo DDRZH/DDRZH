@@ -24,10 +24,23 @@ jobs:
       - name: Deploy to Firebase Hosting
         run: |
           set +e
-          npx --yes firebase-tools@latest deploy --only hosting --project ddrzh-31cb8 --non-interactive 2>&1 | tee deploy.log
-          STATUS=${PIPESTATUS[0]}
-          if [ "$STATUS" -ne 0 ] && grep -q "is the current active version" deploy.log; then
-            echo "::notice::Hosting content unchanged since last deploy; treating as success."
-            exit 0
-          fi
+          ATTEMPTS=3
+          for i in $(seq 1 $ATTEMPTS); do
+            echo "::group::Deploy attempt $i/$ATTEMPTS"
+            npx --yes firebase-tools@13.35.1 deploy --only hosting --project ddrzh-31cb8 --non-interactive 2>&1 | tee deploy.log
+            STATUS=${PIPESTATUS[0]}
+            echo "::endgroup::"
+            if [ "$STATUS" -eq 0 ]; then
+              exit 0
+            fi
+            if grep -q "is the current active version" deploy.log; then
+              echo "::notice::Hosting content unchanged since last deploy; treating as success."
+              exit 0
+            fi
+            if ! grep -q "content hash doesn't match content" deploy.log; then
+              exit $STATUS
+            fi
+            echo "::warning::Transient hash-mismatch on attempt $i; retrying after 10s."
+            sleep 10
+          done
           exit $STATUS
