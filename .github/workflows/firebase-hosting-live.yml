@@ -24,23 +24,21 @@ jobs:
       - name: Deploy to Firebase Hosting
         run: |
           set +e
+          LOG="$RUNNER_TEMP/firebase-deploy.log"
           ATTEMPTS=3
           for i in $(seq 1 $ATTEMPTS); do
             echo "::group::Deploy attempt $i/$ATTEMPTS"
-            npx --yes firebase-tools@latest deploy --only hosting --project ddrzh-31cb8 --non-interactive --debug 2>&1 | tee deploy.log
+            npx --yes firebase-tools@latest deploy --only hosting --project ddrzh-31cb8 --non-interactive --debug 2>&1 | tee "$LOG"
             STATUS=${PIPESTATUS[0]}
             echo "::endgroup::"
             if [ "$STATUS" -eq 0 ]; then
               exit 0
             fi
-            if grep -q "is the current active version" deploy.log; then
+            if grep -q "is the current active version" "$LOG"; then
               echo "::notice::Hosting content unchanged since last deploy; treating as success."
               exit 0
             fi
-            if grep -q "content hash doesn't match content" deploy.log; then
-              echo "::group::Failing-task -> file mapping (from --debug log)"
-              grep -E "queueing upload of|hash=|file=" deploy.log | tail -100 || true
-              echo "::endgroup::"
+            if grep -q "content hash doesn't match content" "$LOG"; then
               if [ "$i" -lt "$ATTEMPTS" ]; then
                 echo "::warning::hash-mismatch on attempt $i; retrying after 15s."
                 sleep 15
