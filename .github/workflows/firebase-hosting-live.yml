@@ -24,10 +24,10 @@ jobs:
       - name: Deploy to Firebase Hosting
         run: |
           set +e
-          ATTEMPTS=3
+          ATTEMPTS=5
           for i in $(seq 1 $ATTEMPTS); do
             echo "::group::Deploy attempt $i/$ATTEMPTS"
-            npx --yes firebase-tools@13.35.1 deploy --only hosting --project ddrzh-31cb8 --non-interactive 2>&1 | tee deploy.log
+            npx --yes firebase-tools@latest deploy --only hosting --project ddrzh-31cb8 --non-interactive 2>&1 | tee deploy.log
             STATUS=${PIPESTATUS[0]}
             echo "::endgroup::"
             if [ "$STATUS" -eq 0 ]; then
@@ -40,7 +40,7 @@ jobs:
             if ! grep -q "content hash doesn't match content" deploy.log; then
               exit $STATUS
             fi
-            echo "::warning::Transient hash-mismatch on attempt $i; retrying after 10s."
-            sleep 10
+            echo "::warning::Transient hash-mismatch on attempt $i; retrying after 15s."
+            sleep 15
           done
           exit $STATUS
