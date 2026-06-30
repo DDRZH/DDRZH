@@ -28,15 +28,6 @@ const REN_CLONE_ALLOWED_ORIGINS = new Set([
 
 const renCloneRequestCounts = new Map();
 
-const elevenApiKey = process.env.ELEVENLABS_API_KEY || "";
-const elevenVoiceId = process.env.ELEVENLABS_VOICE_ID || "";
-const elevenModelId = process.env.ELEVENLABS_MODEL_ID || "eleven_multilingual_v2";
-const voiceGloballyEnabled = parseBooleanEnv(process.env.VOICE_ENABLED, true);
-const llmApiKey = process.env.OPENAI_API_KEY || process.env.DEEPSEEK_API_KEY || "";
-const llmModel = process.env.OPENAI_MODEL || process.env.DEEPSEEK_MODEL || process.env.MODEL_NAME || "gpt-4.1-mini";
-const llmBaseUrl = resolveLlmBaseUrl();
-const llmApiMode = resolveLlmApiMode();
-
 function parseBooleanEnv(value, defaultValue = true) {
   if (value === undefined || value === null || value === "") return defaultValue;
   const normalized = String(value).trim().toLowerCase();
@@ -45,15 +36,15 @@ function parseBooleanEnv(value, defaultValue = true) {
   return defaultValue;
 }
 
-function resolveLlmBaseUrl() {
-  const configured = process.env.OPENAI_BASE_URL || process.env.DEEPSEEK_BASE_URL;
+function resolveLlmBaseUrl(llmModel, configuredBaseUrl) {
+  const configured = configuredBaseUrl;
   if (configured) return configured.replace(/\/+$/, "");
   if (isDeepSeekModel(llmModel)) return "https://api.deepseek.com";
   return "https://api.openai.com/v1";
 }
 
-function resolveLlmApiMode() {
-  const configured = process.env.LLM_API_MODE || process.env.OPENAI_API_MODE;
+function resolveLlmApiMode(llmModel, llmBaseUrl, configuredApiMode) {
+  const configured = configuredApiMode;
   if (configured) return configured;
   if (isDeepSeekModel(llmModel) || llmBaseUrl.includes("deepseek.com")) return "chat-completions";
   return "responses";
@@ -142,6 +133,59 @@ function sanitizeHistory(value) {
     .slice(-8);
 }
 
+function readConfigValue(source) {
+  if (typeof source === "function") {
+    return source();
+  }
+  return source;
+}
+
+function getRuntimeConfig(overrides = {}) {
+  const elevenApiKey =
+    readConfigValue(overrides.elevenApiKey) || process.env.ELEVENLABS_API_KEY || "";
+  const elevenVoiceId =
+    readConfigValue(overrides.elevenVoiceId) || process.env.ELEVENLABS_VOICE_ID || "";
+  const elevenModelId =
+    readConfigValue(overrides.elevenModelId) ||
+    process.env.ELEVENLABS_MODEL_ID ||
+    "eleven_multilingual_v2";
+  const voiceGloballyEnabled = parseBooleanEnv(
+    readConfigValue(overrides.voiceEnabled) || process.env.VOICE_ENABLED,
+    true
+  );
+  const llmApiKey =
+    readConfigValue(overrides.llmApiKey) ||
+    process.env.OPENAI_API_KEY ||
+    process.env.DEEPSEEK_API_KEY ||
+    "";
+  const llmModel =
+    readConfigValue(overrides.llmModel) ||
+    process.env.OPENAI_MODEL ||
+    process.env.DEEPSEEK_MODEL ||
+    process.env.MODEL_NAME ||
+    "gpt-4.1-mini";
+  const llmBaseUrl = resolveLlmBaseUrl(
+    llmModel,
+    readConfigValue(overrides.llmBaseUrl) || process.env.OPENAI_BASE_URL || process.env.DEEPSEEK_BASE_URL
+  );
+  const llmApiMode = resolveLlmApiMode(
+    llmModel,
+    llmBaseUrl,
+    readConfigValue(overrides.llmApiMode) || process.env.LLM_API_MODE || process.env.OPENAI_API_MODE
+  );
+
+  return {
+    elevenApiKey,
+    elevenVoiceId,
+    elevenModelId,
+    voiceGloballyEnabled,
+    llmApiKey,
+    llmModel,
+    llmBaseUrl,
+    llmApiMode
+  };
+}
+
 async function readSkillInstructions() {
   if (renCloneInstructionsCache) return renCloneInstructionsCache;
 
@@ -168,27 +212,27 @@ Answer in first person as Ren. Output English only, even when the user writes in
   return renCloneInstructionsCache;
 }
 
-async function answerWithLLM(message, history) {
+async function answerWithLLM(message, history, config) {
   let answer = "";
-  if (llmApiMode === "chat-completions") {
-    answer = await answerWithChatCompletions(message, history);
+  if (config.llmApiMode === "chat-completions") {
+    answer = await answerWithChatCompletions(message, history, config);
   } else {
-    answer = await answerWithResponsesApi(message, history);
+    answer = await answerWithResponsesApi(message, history, config);
   }
-  return containsCjk(answer) ? rewriteAnswerInEnglish(answer) : answer;
+  return containsCjk(answer) ? rewriteAnswerInEnglish(answer, config) : answer;
 }
 
-async function answerWithResponsesApi(message, history) {
+async function answerWithResponsesApi(message, history, config) {
   const instructions = await readSkillInstructions();
   const input = [...history, { role: "user", content: message }];
-  const response = await fetch(`${llmBaseUrl}/responses`, {
+  const response = await fetch(`${config.llmBaseUrl}/responses`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${llmApiKey}`,
+      Authorization: `Bearer ${config.llmApiKey}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: llmModel,
+      model: config.llmModel,
       instructions,
       input
     })
@@ -211,21 +255,21 @@ async function answerWithResponsesApi(message, history) {
   return output.trim();
 }
 
-async function answerWithChatCompletions(message, history) {
+async function answerWithChatCompletions(message, history, config) {
   const instructions = await readSkillInstructions();
   const messages = [
     { role: "system", content: instructions },
     ...history,
     { role: "user", content: message }
   ];
-  const response = await fetch(`${llmBaseUrl}/chat/completions`, {
+  const response = await fetch(`${config.llmBaseUrl}/chat/completions`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${llmApiKey}`,
+      Authorization: `Bearer ${config.llmApiKey}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: llmModel,
+      model: config.llmModel,
       messages,
       stream: false
     })
@@ -245,7 +289,7 @@ async function answerWithChatCompletions(message, history) {
   return output.trim();
 }
 
-async function rewriteAnswerInEnglish(answer) {
+async function rewriteAnswerInEnglish(answer, config) {
   const rewriteInstruction = [
     "Rewrite this reply in natural concise English only.",
     "Keep first person.",
@@ -255,15 +299,15 @@ async function rewriteAnswerInEnglish(answer) {
     "Use plain text only, no Markdown."
   ].join(" ");
 
-  if (llmApiMode === "chat-completions") {
-    const response = await fetch(`${llmBaseUrl}/chat/completions`, {
+  if (config.llmApiMode === "chat-completions") {
+    const response = await fetch(`${config.llmBaseUrl}/chat/completions`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${llmApiKey}`,
+        Authorization: `Bearer ${config.llmApiKey}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: llmModel,
+        model: config.llmModel,
         messages: [
           { role: "system", content: rewriteInstruction },
           { role: "user", content: answer }
@@ -286,14 +330,14 @@ async function rewriteAnswerInEnglish(answer) {
     return output.trim();
   }
 
-  const response = await fetch(`${llmBaseUrl}/responses`, {
+  const response = await fetch(`${config.llmBaseUrl}/responses`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${llmApiKey}`,
+      Authorization: `Bearer ${config.llmApiKey}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: llmModel,
+      model: config.llmModel,
       instructions: rewriteInstruction,
       input: answer
     })
@@ -341,23 +385,23 @@ function includesAny(text, values) {
   return values.some((value) => text.includes(value));
 }
 
-async function createSpeech(text) {
-  if (!elevenApiKey || !elevenVoiceId) {
+async function createSpeech(text, config) {
+  if (!config.elevenApiKey || !config.elevenVoiceId) {
     throw new Error("ElevenLabs API key or voice ID is missing.");
   }
 
   await mkdir(audioDir, { recursive: true });
   const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(elevenVoiceId)}?output_format=mp3_44100_128`,
+    `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(config.elevenVoiceId)}?output_format=mp3_44100_128`,
     {
       method: "POST",
       headers: {
-        "xi-api-key": elevenApiKey,
+        "xi-api-key": config.elevenApiKey,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
         text,
-        model_id: elevenModelId,
+        model_id: config.elevenModelId,
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.8,
@@ -379,121 +423,125 @@ async function createSpeech(text) {
   return `audio/${filename}`;
 }
 
-async function handleRenCloneRequest(request, response) {
-  const origin = request.get("origin");
-  setCors(response, origin);
+function createRenCloneHandler(configOverrides = {}) {
+  return async function handleRenCloneRequest(request, response) {
+    const config = getRuntimeConfig(configOverrides);
+    const origin = request.get("origin");
+    setCors(response, origin);
 
-  if (request.method === "OPTIONS") {
-    response.status(204).send("");
-    return;
-  }
+    if (request.method === "OPTIONS") {
+      response.status(204).send("");
+      return;
+    }
 
-  if (origin && !REN_CLONE_ALLOWED_ORIGINS.has(origin)) {
-    response.status(403).json({ ok: false, message: "Origin not allowed." });
-    return;
-  }
+    if (origin && !REN_CLONE_ALLOWED_ORIGINS.has(origin)) {
+      response.status(403).json({ ok: false, message: "Origin not allowed." });
+      return;
+    }
 
-  if (request.method === "GET") {
-    response.status(200).json({
-      voiceAvailable: Boolean(elevenApiKey && elevenVoiceId),
-      voiceConfigured: Boolean(elevenApiKey && elevenVoiceId),
-      voiceGloballyEnabled,
-      llmMode: llmApiKey ? `distilled-persona:${llmApiMode}` : "local-demo",
-      llmModel: llmApiKey ? llmModel : ""
+    if (request.method === "GET") {
+      response.status(200).json({
+        voiceAvailable: Boolean(config.elevenApiKey && config.elevenVoiceId),
+        voiceConfigured: Boolean(config.elevenApiKey && config.elevenVoiceId),
+        voiceGloballyEnabled: config.voiceGloballyEnabled,
+        llmMode: config.llmApiKey ? `distilled-persona:${config.llmApiMode}` : "local-demo",
+        llmModel: config.llmApiKey ? config.llmModel : ""
+      });
+      return;
+    }
+
+    if (request.method !== "POST") {
+      response.status(405).json({ ok: false, message: "Method not allowed." });
+      return;
+    }
+
+    const body = parseBody(request);
+    if (!body) {
+      response.status(400).json({ ok: false, message: "Invalid request." });
+      return;
+    }
+
+    const password = normalizeText(body.password, 64);
+    const message = normalizeText(body.message, 3000);
+    const history = sanitizeHistory(body.history);
+    const voiceEnabled = shouldUseVoice(config.voiceGloballyEnabled, body.voiceEnabled);
+    const ip = getClientIp(request);
+
+    if (isRateLimited(`ren-clone:${ip}`)) {
+      response.status(429).json({ ok: false, message: "Too many requests. Please try again later." });
+      return;
+    }
+
+    if (password !== REN_CLONE_PASSWORD) {
+      response.status(401).json({ ok: false, message: "Password is incorrect." });
+      return;
+    }
+
+    if (!message) {
+      response.status(400).json({ ok: false, message: "Please enter a message." });
+      return;
+    }
+
+    response.writeHead(200, {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-store",
+      Connection: "keep-alive"
     });
-    return;
-  }
 
-  if (request.method !== "POST") {
-    response.status(405).json({ ok: false, message: "Method not allowed." });
-    return;
-  }
+    const requestStarted = Date.now();
 
-  const body = parseBody(request);
-  if (!body) {
-    response.status(400).json({ ok: false, message: "Invalid request." });
-    return;
-  }
+    try {
+      sendEvent(response, "status", { stage: "thinking", message: "Thinking..." });
 
-  const password = normalizeText(body.password, 64);
-  const message = normalizeText(body.message, 3000);
-  const history = sanitizeHistory(body.history);
-  const voiceEnabled = shouldUseVoice(voiceGloballyEnabled, body.voiceEnabled);
-  const ip = getClientIp(request);
+      const answerStarted = Date.now();
+      const answer = config.llmApiKey
+        ? await answerWithLLM(message, history, config)
+        : answerWithLocalRules(message);
 
-  if (isRateLimited(`ren-clone:${ip}`)) {
-    response.status(429).json({ ok: false, message: "Too many requests. Please try again later." });
-    return;
-  }
+      if (voiceEnabled) {
+        sendEvent(response, "status", {
+          stage: "speaking",
+          message: "Thinking complete. Generating voice...",
+          answer,
+          timings: {
+            answerMs: Date.now() - answerStarted
+          }
+        });
+      }
 
-  if (password !== REN_CLONE_PASSWORD) {
-    response.status(401).json({ ok: false, message: "Password is incorrect." });
-    return;
-  }
+      let audioUrl = "";
+      let audioError = "";
+      const speechStarted = Date.now();
+      if (voiceEnabled) {
+        try {
+          audioUrl = await createSpeech(answer, config);
+        } catch (error) {
+          audioError = error instanceof Error ? error.message : "Could not generate audio.";
+        }
+      }
 
-  if (!message) {
-    response.status(400).json({ ok: false, message: "Please enter a message." });
-    return;
-  }
-
-  response.writeHead(200, {
-    "Content-Type": "text/event-stream; charset=utf-8",
-    "Cache-Control": "no-store",
-    Connection: "keep-alive"
-  });
-
-  const requestStarted = Date.now();
-
-  try {
-    sendEvent(response, "status", { stage: "thinking", message: "Thinking..." });
-
-    const answerStarted = Date.now();
-    const answer = llmApiKey
-      ? await answerWithLLM(message, history)
-      : answerWithLocalRules(message);
-
-    if (voiceEnabled) {
-      sendEvent(response, "status", {
-        stage: "speaking",
-        message: "Thinking complete. Generating voice...",
+      sendEvent(response, "done", {
         answer,
+        audioUrl,
+        audioError,
+        voiceEnabled,
+        llmMode: config.llmApiKey ? `distilled-persona:${config.llmApiMode}` : "local-demo",
         timings: {
-          answerMs: Date.now() - answerStarted
+          speechMs: Date.now() - speechStarted,
+          totalMs: Date.now() - requestStarted
         }
       });
+    } catch (error) {
+      sendEvent(response, "error", {
+        error: error instanceof Error ? error.message : "Unexpected server error."
+      });
+    } finally {
+      response.end();
     }
-
-    let audioUrl = "";
-    let audioError = "";
-    const speechStarted = Date.now();
-    if (voiceEnabled) {
-      try {
-        audioUrl = await createSpeech(answer);
-      } catch (error) {
-        audioError = error instanceof Error ? error.message : "Could not generate audio.";
-      }
-    }
-
-    sendEvent(response, "done", {
-      answer,
-      audioUrl,
-      audioError,
-      voiceEnabled,
-      llmMode: llmApiKey ? `distilled-persona:${llmApiMode}` : "local-demo",
-      timings: {
-        speechMs: Date.now() - speechStarted,
-        totalMs: Date.now() - requestStarted
-      }
-    });
-  } catch (error) {
-    sendEvent(response, "error", {
-      error: error instanceof Error ? error.message : "Unexpected server error."
-    });
-  } finally {
-    response.end();
-  }
+  };
 }
 
 module.exports = {
-  handleRenCloneRequest
+  createRenCloneHandler,
+  handleRenCloneRequest: createRenCloneHandler()
 };

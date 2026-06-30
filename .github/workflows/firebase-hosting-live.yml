@@ -14,6 +14,15 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Functions dependencies
+        run: npm ci
+        working-directory: functions
+
       - name: Write service account credentials
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DDRZH_31CB8 }}
@@ -21,18 +30,22 @@ jobs:
           printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/firebase-sa.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
 
-      - name: Deploy to Firebase Hosting
+      - name: Deploy to Firebase Hosting and Functions
         run: |
           set +e
           LOG="$RUNNER_TEMP/firebase-deploy.log"
           ATTEMPTS=3
           for i in $(seq 1 $ATTEMPTS); do
             echo "::group::Deploy attempt $i/$ATTEMPTS"
-            npx --yes firebase-tools@latest deploy --only hosting --project ddrzh-31cb8 --non-interactive --debug 2>&1 | tee "$LOG"
+            npx --yes firebase-tools@latest deploy --only hosting,functions:renClone --project ddrzh-31cb8 --non-interactive --debug 2>&1 | tee "$LOG"
             STATUS=${PIPESTATUS[0]}
             echo "::endgroup::"
             if [ "$STATUS" -eq 0 ]; then
               exit 0
+            fi
+            if grep -q "Unable to find a valid endpoint for function" "$LOG"; then
+              echo "::error::Firebase Hosting rewrite references a function endpoint that was not discovered."
+              exit $STATUS
             fi
             if grep -q "is the current active version" "$LOG"; then
               echo "::notice::Hosting content unchanged since last deploy; treating as success."
