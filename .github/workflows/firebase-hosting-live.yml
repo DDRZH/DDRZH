@@ -30,6 +30,17 @@ jobs:
           printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/firebase-sa.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
 
+      - name: Remove legacy renClone function
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/firebase-functions-delete-legacy.log"
+          npx --yes firebase-tools@latest functions:delete renClone --region us-central1 --project ddrzh-31cb8 --non-interactive --force --debug 2>&1 | tee "$LOG"
+          STATUS=${PIPESTATUS[0]}
+          if [ "$STATUS" -eq 0 ] || grep -qi "not found" "$LOG"; then
+            exit 0
+          fi
+          exit $STATUS
+
       - name: Deploy renclone function
         run: |
           set +e
