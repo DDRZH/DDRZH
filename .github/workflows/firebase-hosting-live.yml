@@ -37,7 +37,7 @@ jobs:
           ATTEMPTS=3
           for i in $(seq 1 $ATTEMPTS); do
             echo "::group::Deploy attempt $i/$ATTEMPTS"
-            npx --yes firebase-tools@latest deploy --only hosting,functions:renClone --project ddrzh-31cb8 --non-interactive --debug 2>&1 | tee "$LOG"
+            npx --yes firebase-tools@latest deploy --only hosting,functions:renClone --project ddrzh-31cb8 --non-interactive --force --debug 2>&1 | tee "$LOG"
             STATUS=${PIPESTATUS[0]}
             echo "::endgroup::"
             if [ "$STATUS" -eq 0 ]; then
