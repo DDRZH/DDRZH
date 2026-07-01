@@ -7,7 +7,7 @@
     "rewrites": [
       {
         "source": "/api/ren-clone",
-        "function": "renClone"
+        "function": "renclone"
       }
     ],
     "ignore": [

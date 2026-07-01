@@ -11,7 +11,7 @@ const ELEVENLABS_VOICE_ID = defineSecret("ELEVENLABS_VOICE_ID");
 const ELEVENLABS_MODEL_ID = defineSecret("ELEVENLABS_MODEL_ID");
 const VOICE_ENABLED = defineSecret("VOICE_ENABLED");
 
-exports.renClone = onRequest(
+exports.renclone = onRequest(
   {
     region: "us-central1",
     maxInstances: 4,

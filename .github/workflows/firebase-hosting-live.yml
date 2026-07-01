@@ -30,6 +30,30 @@ jobs:
           printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/firebase-sa.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
 
+      - name: Deploy renclone function
+        run: |
+          set +e
+          LOG="$RUNNER_TEMP/firebase-functions-deploy.log"
+          ATTEMPTS=5
+          for i in $(seq 1 $ATTEMPTS); do
+            echo "::group::Functions deploy attempt $i/$ATTEMPTS"
+            npx --yes firebase-tools@latest deploy --only functions:renclone --project ddrzh-31cb8 --non-interactive --force --debug 2>&1 | tee "$LOG"
+            STATUS=${PIPESTATUS[0]}
+            echo "::endgroup::"
+            if [ "$STATUS" -eq 0 ]; then
+              exit 0
+            fi
+            if grep -q "unable to queue the operation" "$LOG"; then
+              if [ "$i" -lt "$ATTEMPTS" ]; then
+                echo "::warning::Function update is already in progress; retrying after 20s."
+                sleep 20
+                continue
+              fi
+            fi
+            exit $STATUS
+          done
+          exit $STATUS
+
       - name: Deploy Firebase Hosting
         run: |
           set +e
@@ -51,30 +75,6 @@ jobs:
               if [ "$i" -lt "$ATTEMPTS" ]; then
                 echo "::warning::hash-mismatch on attempt $i; retrying after 15s."
                 sleep 15
-                continue
-              fi
-            fi
-            exit $STATUS
-          done
-          exit $STATUS
-
-      - name: Deploy renClone function
-        run: |
-          set +e
-          LOG="$RUNNER_TEMP/firebase-functions-deploy.log"
-          ATTEMPTS=5
-          for i in $(seq 1 $ATTEMPTS); do
-            echo "::group::Functions deploy attempt $i/$ATTEMPTS"
-            npx --yes firebase-tools@latest deploy --only functions:renClone --project ddrzh-31cb8 --non-interactive --force --debug 2>&1 | tee "$LOG"
-            STATUS=${PIPESTATUS[0]}
-            echo "::endgroup::"
-            if [ "$STATUS" -eq 0 ]; then
-              exit 0
-            fi
-            if grep -q "unable to queue the operation" "$LOG"; then
-              if [ "$i" -lt "$ATTEMPTS" ]; then
-                echo "::warning::Function update is already in progress; retrying after 20s."
-                sleep 20
                 continue
               fi
             fi
