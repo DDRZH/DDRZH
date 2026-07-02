@@ -83,8 +83,7 @@ jobs:
       - name: Allow Firebase Hosting to invoke functions
         run: |
           set -euo pipefail
-          PROJECT_NUMBER="$(gcloud projects describe ddrzh-31cb8 --format='value(projectNumber)')"
-          HOSTING_SA="service-${PROJECT_NUMBER}@gcp-sa-firebasehosting.iam.gserviceaccount.com"
+          HOSTING_SA="firebase-hosting@ddrzh-31cb8.iam.gserviceaccount.com"
           for service_name in renclone renclonelive; do
             echo "Granting Cloud Run Invoker to $HOSTING_SA for $service_name"
             gcloud run services add-iam-policy-binding "$service_name" \
