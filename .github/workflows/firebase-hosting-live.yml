@@ -33,16 +33,6 @@ jobs:
       - name: Set up Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Remove legacy renClone function
-        run: |
-          set +e
-          LOG="$RUNNER_TEMP/firebase-functions-delete-renClone.log"
-          npx --yes firebase-tools@latest functions:delete renClone --region us-central1 --project ddrzh-31cb8 --non-interactive --force --debug 2>&1 | tee "$LOG"
-          STATUS=${PIPESTATUS[0]}
-          if [ "$STATUS" -ne 0 ] && ! grep -qi "not found" "$LOG"; then
-            exit $STATUS
-          fi
-
       - name: Deploy renclone function
         run: |
           set +e
