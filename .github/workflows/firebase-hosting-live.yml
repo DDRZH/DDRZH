@@ -30,17 +30,18 @@ jobs:
           printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/firebase-sa.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
 
-      - name: Remove stale renclone functions
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Remove legacy renClone function
         run: |
           set +e
-          for FUNCTION_NAME in renClone renclone; do
-            LOG="$RUNNER_TEMP/firebase-functions-delete-$FUNCTION_NAME.log"
-            npx --yes firebase-tools@latest functions:delete "$FUNCTION_NAME" --region us-central1 --project ddrzh-31cb8 --non-interactive --force --debug 2>&1 | tee "$LOG"
-            STATUS=${PIPESTATUS[0]}
-            if [ "$STATUS" -ne 0 ] && ! grep -qi "not found" "$LOG"; then
-              exit $STATUS
-            fi
-          done
+          LOG="$RUNNER_TEMP/firebase-functions-delete-renClone.log"
+          npx --yes firebase-tools@latest functions:delete renClone --region us-central1 --project ddrzh-31cb8 --non-interactive --force --debug 2>&1 | tee "$LOG"
+          STATUS=${PIPESTATUS[0]}
+          if [ "$STATUS" -ne 0 ] && ! grep -qi "not found" "$LOG"; then
+            exit $STATUS
+          fi
 
       - name: Deploy renclone function
         run: |
@@ -66,6 +67,26 @@ jobs:
           done
           exit $STATUS
 
+      - name: Wait for renclone function to become active
+        run: |
+          set -euo pipefail
+          gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
+          for i in $(seq 1 30); do
+            STATE="$(gcloud functions describe renclone --gen2 --region us-central1 --project ddrzh-31cb8 --format='value(state)' 2>/tmp/renclone-describe-error.log || true)"
+            echo "renclone state: ${STATE:-unavailable} (attempt $i/30)"
+            if [ "$STATE" = "ACTIVE" ]; then
+              exit 0
+            fi
+            if [ "$STATE" = "FAILED" ] || [ "$STATE" = "UNKNOWN" ]; then
+              cat /tmp/renclone-describe-error.log || true
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "::error::renclone did not become ACTIVE before Hosting deploy."
+          gcloud functions describe renclone --gen2 --region us-central1 --project ddrzh-31cb8 || true
+          exit 1
+
       - name: Deploy Firebase Hosting
         run: |
           set +e
@@ -83,9 +104,9 @@ jobs:
               echo "::notice::Hosting content unchanged since last deploy; treating as success."
               exit 0
             fi
-            if grep -q "content hash doesn't match content" "$LOG"; then
+            if grep -q "content hash doesn't match content" "$LOG" || grep -q "Requested entity was not found" "$LOG"; then
               if [ "$i" -lt "$ATTEMPTS" ]; then
-                echo "::warning::hash-mismatch on attempt $i; retrying after 15s."
+                echo "::warning::Transient Hosting deploy error on attempt $i; retrying after 15s."
                 sleep 15
                 continue
               fi
