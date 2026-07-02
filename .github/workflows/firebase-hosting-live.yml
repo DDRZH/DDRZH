@@ -77,15 +77,6 @@ jobs:
           gcloud functions describe renclone --gen2 --region us-central1 --project ddrzh-31cb8 || true
           exit 1
 
-      - name: Allow public invocation for renclone
-        run: |
-          set -euo pipefail
-          gcloud run services add-iam-policy-binding renclone \
-            --region us-central1 \
-            --project ddrzh-31cb8 \
-            --member allUsers \
-            --role roles/run.invoker
-
       - name: Deploy Firebase Hosting
         run: |
           set +e
