@@ -1,4 +1,4 @@
-require("dotenv").config({ path: "./functions/.env" });
+require("dotenv").config({ path: "./functions-renclone/.env" });
 
 const path = require("node:path");
 const fs = require("node:fs");
@@ -7,7 +7,8 @@ const express = require("express");
 const projectRoot = __dirname;
 process.env.REN_CLONE_AUDIO_DIR = path.join(projectRoot, "audio");
 
-const { handleRenCloneRequest } = require("./functions/ren-clone-handler");
+const { handleRenCloneRequest } = require("./functions-renclone/ren-clone-handler");
+const { handleRenCloneLiveRequest } = require("./functions-renclone/ren-clone-live-handler");
 
 const app = express();
 app.set("strict routing", true);
@@ -24,6 +25,7 @@ app.get(BASE_PATH, (_request, response) => {
 
 app.use(`${BASE_PATH}/audio`, express.static(process.env.REN_CLONE_AUDIO_DIR));
 app.all(`${BASE_PATH}/api/ren-clone`, handleRenCloneRequest);
+app.all(`${BASE_PATH}/api/ren-clone-live`, handleRenCloneLiveRequest);
 
 app.get(`${BASE_PATH}/*`, (request, response, next) => {
   const relativePath = request.params[0] || "";

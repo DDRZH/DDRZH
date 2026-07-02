@@ -8,6 +8,10 @@
       {
         "source": "/api/ren-clone",
         "function": "renclone"
+      },
+      {
+        "source": "/api/ren-clone-live",
+        "function": "renCloneLive"
       }
     ],
     "ignore": [

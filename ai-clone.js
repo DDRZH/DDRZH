@@ -1,6 +1,8 @@
 const PASSWORD_VALUE = "ddrzh";
 const PASSWORD_STORAGE_KEY = "ddrzh-ai-clone-password";
 const API_URL = "api/ren-clone";
+const API_URL_LIVE = "api/ren-clone-live";
+
 const gateShell = document.querySelector("#gateShell");
 const gateForm = document.querySelector("#gateForm");
 const gatePasswordInput = document.querySelector("#gatePassword");
@@ -16,9 +18,11 @@ const voiceHint = document.querySelector("#voiceHint");
 
 const conversationHistory = [];
 let activeAudio = null;
+let activeAudioQueue = null;
+let activeTextStream = null;
 let config = {
   voiceAvailable: false,
-  voiceGloballyEnabled: true,
+  voiceGloballyEnabled: true
 };
 const voicePreferenceKey = "virtual-ren-voice-enabled";
 
@@ -64,19 +68,20 @@ form.addEventListener("submit", async (event) => {
   const pending = appendMessage("assistant", "Virtual Ren", "Thinking...", { pending: true });
 
   try {
-    const data = await askWithProgress(
+    stopActiveStreams();
+
+    const data = await askLive(
       message,
       conversationHistory.slice(0, -1),
       pending,
       getVoiceEnabled(),
-      sessionStorage.getItem(PASSWORD_STORAGE_KEY) || "",
+      sessionStorage.getItem(PASSWORD_STORAGE_KEY) || ""
     );
+
     pending.classList.remove("pending");
     pending.querySelector(".audio-status")?.remove();
-    const textEl = pending.querySelector(".answer-text");
-    if (textEl) textEl.textContent = data.answer;
-    if (data.audioUrl) {
-      attachAudio(pending, data.audioUrl);
+    if (data.answer) {
+      activeTextStream?.flushNow();
     }
     if (data.audioError) {
       appendAudioError(pending, data.audioError);
@@ -85,9 +90,12 @@ form.addEventListener("submit", async (event) => {
     trimHistory();
   } catch (error) {
     pending.remove();
-    appendMessage("assistant", "Virtual Ren", error instanceof Error ? error.message : "Something went wrong.", {
-      isError: true,
-    });
+    appendMessage(
+      "assistant",
+      "Virtual Ren",
+      error instanceof Error ? error.message : "Something went wrong.",
+      { isError: true }
+    );
   } finally {
     setLoading(false);
     messageInput.focus();
@@ -96,10 +104,7 @@ form.addEventListener("submit", async (event) => {
 
 clearButton.addEventListener("click", () => {
   conversationHistory.length = 0;
-  if (activeAudio) {
-    activeAudio.pause();
-    activeAudio = null;
-  }
+  stopActiveStreams();
   conversationEl.querySelectorAll(".message.dynamic").forEach((message) => message.remove());
   messageInput.value = "";
   messageInput.focus();
@@ -107,16 +112,17 @@ clearButton.addEventListener("click", () => {
 
 voiceToggle?.addEventListener("change", () => {
   setStoredVoiceEnabled(voiceToggle.checked);
-  if (!voiceToggle.checked && activeAudio) {
-    activeAudio.pause();
-    activeAudio = null;
+  if (!voiceToggle.checked) {
+    stopActiveStreams();
   }
   syncVoiceToggle();
 });
 
 function appendMessage(role, label, text, options = {}) {
   const wrapper = document.createElement("div");
-  wrapper.className = `message dynamic ${role === "user" ? "user-preview" : "assistant"}${options.pending ? " pending" : ""}`;
+  wrapper.className = `message dynamic ${
+    role === "user" ? "user-preview" : "assistant"
+  }${options.pending ? " pending" : ""}`;
 
   const labelEl = document.createElement("span");
   labelEl.className = "message-label";
@@ -127,16 +133,6 @@ function appendMessage(role, label, text, options = {}) {
   textEl.textContent = text;
 
   wrapper.append(labelEl, textEl);
-
-  if (options.audioUrl) {
-    if (activeAudio) activeAudio.pause();
-    const audio = document.createElement("audio");
-    audio.controls = true;
-    audio.src = options.audioUrl;
-    wrapper.append(audio);
-    activeAudio = audio;
-    audio.play().catch(() => {});
-  }
 
   if (options.audioError) {
     const audioError = document.createElement("p");
@@ -166,11 +162,11 @@ function unlockApp(password) {
   messageInput.focus();
 }
 
-async function askWithProgress(message, history, pendingEl, voiceEnabled, password) {
-  const response = await fetch(API_URL, {
+async function askLive(message, history, pendingEl, voiceEnabled, password) {
+  const response = await fetch(API_URL_LIVE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, history, voiceEnabled, password }),
+    body: JSON.stringify({ message, history, voiceEnabled, password })
   });
   if (!response.ok || !response.body) {
     const errorPayload = await response.json().catch(() => null);
@@ -180,45 +176,142 @@ async function askWithProgress(message, history, pendingEl, voiceEnabled, passwo
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
-  let finalData = null;
+  let answer = "";
+  let audioError = "";
+  let resolved = false;
+  const textEl = pendingEl.querySelector(".answer-text");
+  const textStream = createTextStreamController(textEl);
+  activeTextStream = textStream;
 
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const events = buffer.split("\n\n");
-    buffer = events.pop() || "";
+  return new Promise((resolve, reject) => {
+    const finish = () => {
+      if (resolved) return;
+      resolved = true;
+      textStream.flushNow();
+      if (activeTextStream === textStream) activeTextStream = null;
+      resolve({ answer, audioError });
+    };
 
-    for (const rawEvent of events) {
-      const parsed = parseServerEvent(rawEvent);
-      if (!parsed) continue;
-      if (parsed.event === "status") {
-        applyStatus(pendingEl, parsed.data);
-      } else if (parsed.event === "done") {
-        finalData = parsed.data;
-      } else if (parsed.event === "error") {
-        throw new Error(parsed.data.error || "Request failed.");
+    const fail = (error) => {
+      resolved = true;
+      textStream.stop();
+      if (activeTextStream === textStream) activeTextStream = null;
+      reader.cancel().catch(() => {});
+      reject(error);
+    };
+
+    const read = async () => {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) {
+          finish();
+          return;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split("\n\n");
+        buffer = events.pop() || "";
+
+        for (const rawEvent of events) {
+          const parsed = parseServerEvent(rawEvent);
+          if (!parsed) continue;
+
+          if (parsed.event === "status") {
+            applyStatus(pendingEl, parsed.data);
+          } else if (parsed.event === "token") {
+            const token = parsed.data.token || "";
+            answer += token;
+            textStream.push(token);
+          } else if (parsed.event === "audio") {
+            if (!activeAudioQueue) {
+              if (typeof AudioQueue !== "function") {
+                audioError = "Audio playback is unavailable in this browser.";
+                appendAudioError(pendingEl, audioError);
+                continue;
+              }
+              activeAudioQueue = new AudioQueue();
+            }
+            activeAudioQueue.enqueue(parsed.data.chunk);
+          } else if (parsed.event === "audioError") {
+            audioError = parsed.data.message || "";
+            appendAudioError(pendingEl, audioError);
+          } else if (parsed.event === "error") {
+            fail(new Error(parsed.data.error || "Request failed."));
+            return;
+          } else if (parsed.event === "done") {
+            answer = parsed.data.answer || answer;
+            reader.cancel().catch(() => {});
+            finish();
+            return;
+          }
+        }
+      }
+    };
+
+    read().catch((error) => fail(error instanceof Error ? error : new Error(String(error))));
+  });
+}
+
+function createTextStreamController(textEl) {
+  let target = "";
+  let rendered = "";
+  let timer = null;
+
+  const tick = () => {
+    timer = null;
+    const remaining = target.length - rendered.length;
+    if (remaining <= 0) return;
+
+    const chunkSize = rendered.length < 24 ? 4 : 2;
+    rendered = target.slice(0, rendered.length + Math.min(chunkSize, remaining));
+    if (textEl) textEl.textContent = rendered;
+
+    if (rendered.length < target.length) {
+      timer = setTimeout(tick, rendered.length < 24 ? 25 : 40);
+    }
+  };
+
+  return {
+    push(token) {
+      target += token;
+      if (!timer) tick();
+    },
+    flushNow() {
+      target = target || rendered;
+      rendered = target;
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      if (textEl) textEl.textContent = rendered;
+    },
+    stop() {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
       }
     }
-  }
-
-  if (!finalData) throw new Error("No response returned.");
-  return finalData;
+  };
 }
 
 function parseServerEvent(rawEvent) {
   const eventLine = rawEvent.split("\n").find((line) => line.startsWith("event: "));
   const dataLine = rawEvent.split("\n").find((line) => line.startsWith("data: "));
   if (!eventLine || !dataLine) return null;
-  return {
-    event: eventLine.slice("event: ".length),
-    data: JSON.parse(dataLine.slice("data: ".length)),
-  };
+
+  try {
+    return {
+      event: eventLine.slice("event: ".length),
+      data: JSON.parse(dataLine.slice("data: ".length))
+    };
+  } catch {
+    return null;
+  }
 }
 
 function applyStatus(messageEl, data) {
   const textEl = messageEl.querySelector(".answer-text");
-  if (data.message && textEl) {
+  if (data.message && textEl && data.stage !== "speaking") {
     textEl.textContent = data.message;
   }
 
@@ -233,18 +326,8 @@ function applyStatus(messageEl, data) {
   }
 }
 
-function attachAudio(messageEl, audioUrl) {
-  if (!audioUrl) return;
-  if (activeAudio) activeAudio.pause();
-  const audio = document.createElement("audio");
-  audio.controls = true;
-  audio.src = audioUrl;
-  messageEl.append(audio);
-  activeAudio = audio;
-  audio.play().catch(() => {});
-}
-
 function appendAudioError(messageEl, message) {
+  if (messageEl.querySelector(".audio-error")) return;
   const audioError = document.createElement("p");
   audioError.className = "audio-error";
   audioError.textContent = friendlyAudioError(message);
@@ -277,7 +360,7 @@ function syncVoiceToggle() {
   }
 
   voiceHint.textContent = voiceToggle.checked
-    ? "Generate speech after each reply"
+    ? "Stream speech as the reply is generated"
     : "Text only. Turn this back on when the voice service is available.";
 }
 
@@ -295,6 +378,21 @@ function setStoredVoiceEnabled(value) {
 function setLoading(isLoading) {
   askButton.disabled = isLoading;
   askButton.textContent = isLoading ? "Generating..." : "Send";
+}
+
+function stopActiveStreams() {
+  if (activeAudio) {
+    activeAudio.pause();
+    activeAudio = null;
+  }
+  if (activeAudioQueue) {
+    activeAudioQueue.stop();
+    activeAudioQueue = null;
+  }
+  if (activeTextStream) {
+    activeTextStream.stop();
+    activeTextStream = null;
+  }
 }
 
 function friendlyAudioError(message) {
