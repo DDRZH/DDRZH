@@ -16,7 +16,7 @@ exports.renclone = onRequest(
   {
     region: "us-central1",
     maxInstances: 4,
-    invoker: "public",
+    invoker: "private",
     secrets: [
       OPENAI_API_KEY,
       OPENAI_MODEL,
@@ -44,7 +44,7 @@ exports.renCloneLive = onRequest(
   {
     region: "us-central1",
     maxInstances: 4,
-    invoker: "public",
+    invoker: "private",
     secrets: [
       OPENAI_API_KEY,
       OPENAI_MODEL,
