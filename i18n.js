@@ -133,15 +133,14 @@
     "Open case study": "打开案例详情",
     "Build a version for my business": "为我的业务定制一个版本",
     "Protected case": "受保护案例",
-    "AI clone": "AI 克隆",
     "A password-protected conversational clone page that packages persona grounding into a controlled client-facing demo.":
       "一个带密码保护的对话式克隆页面，用接近真人的一对一交流体验来做可控的客户展示 Demo。",
-    "A password-protected conversation page built to feel like a direct one-to-one exchange in a controlled client-facing demo.":
-      "一个带密码保护的对话页面，强调接近真人的一对一交流感，用于可控的客户展示 Demo。",
+    "A password-protected conversation page built to speak to a virtual consciousness of a real person.":
+      "一个带密码保护的对话页面，用来与真实人物的虚拟意识交流。",
     "Password gate before page entry": "进入页面前先做密码验证",
-    "Replies shaped to match one person's tone and way of thinking": "回复会尽量贴近某个人的语气和思考方式",
-    "Text-first mode with voice available when needed": "默认文字优先，需要时也可以接入语音",
-    "Open AI clone": "打开 AI 克隆",
+    "Upload parts of consciousness of a real person": "上传真实人物的部分意识",
+    "Live voice and video available upon request": "可按需提供实时语音和视频",
+    "Open Cyber Clone": "打开虚拟分身",
     "Protected private chat": "受保护的私密对话",
     "Password required": "需要密码",
     "Access gate": "访问门禁",
