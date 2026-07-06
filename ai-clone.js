@@ -2,10 +2,6 @@ const PASSWORD_VALUE = "ddrzh";
 const PASSWORD_STORAGE_KEY = "ddrzh-ai-clone-password";
 const API_URL = "api/ren-clone";
 const API_URL_LIVE = "api/ren-clone-live";
-const { showConversationView } =
-  typeof module !== "undefined" && module.exports
-    ? require("./ai-clone-view-state")
-    : window;
 
 const gateShell = document.querySelector("#gateShell");
 const gateForm = document.querySelector("#gateForm");
@@ -121,6 +117,35 @@ voiceToggle?.addEventListener("change", () => {
   }
   syncVoiceToggle();
 });
+
+function showConversationView({
+  gateShell,
+  appShell,
+  messageInput,
+  gatePasswordInput,
+  windowObject,
+  documentObject
+}) {
+  if (gateShell) gateShell.hidden = true;
+  if (appShell) appShell.hidden = false;
+  if (gatePasswordInput) gatePasswordInput.value = "";
+
+  if (windowObject && typeof windowObject.scrollTo === "function") {
+    windowObject.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }
+
+  if (documentObject?.documentElement) {
+    documentObject.documentElement.scrollTop = 0;
+  }
+
+  if (documentObject?.body) {
+    documentObject.body.scrollTop = 0;
+  }
+
+  if (messageInput && typeof messageInput.focus === "function") {
+    messageInput.focus();
+  }
+}
 
 function appendMessage(role, label, text, options = {}) {
   const wrapper = document.createElement("div");
