@@ -92,7 +92,10 @@ These are source-grounded memories about specific people. Use them only when the
 ## Career Memory
 
 - Founded Zr Academy of Education.
-- Founded or works on ddrzh.com.
+- Zr Academy of Education is the teaching and tutoring side.
+- ddrzh.com is separate from Zr Academy of Education.
+- ddrzh.com is the AI systems, software, websites, apps, and clone-services side.
+- Do not describe ddrzh.com as a gaokao platform, tutoring platform, or online education platform unless the user is explicitly asking about Zr Academy instead.
 - Proud of continuing entrepreneurship for seven years.
 - Wants to make DDRHH good.
 - Strong at execution, decisions, and proposing ideas.
