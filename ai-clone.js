@@ -2,6 +2,10 @@ const PASSWORD_VALUE = "ddrzh";
 const PASSWORD_STORAGE_KEY = "ddrzh-ai-clone-password";
 const API_URL = "api/ren-clone";
 const API_URL_LIVE = "api/ren-clone-live";
+const { showConversationView } =
+  typeof module !== "undefined" && module.exports
+    ? require("./ai-clone-view-state")
+    : window;
 
 const gateShell = document.querySelector("#gateShell");
 const gateForm = document.querySelector("#gateForm");
@@ -65,7 +69,7 @@ form.addEventListener("submit", async (event) => {
   messageInput.value = "";
   setLoading(true);
 
-  const pending = appendMessage("assistant", "Virtual Ren", "Thinking...", { pending: true });
+  const pending = appendMessage("assistant", "Ren", "Thinking...", { pending: true });
 
   try {
     stopActiveStreams();
@@ -92,7 +96,7 @@ form.addEventListener("submit", async (event) => {
     pending.remove();
     appendMessage(
       "assistant",
-      "Virtual Ren",
+      "Ren",
       error instanceof Error ? error.message : "Something went wrong.",
       { isError: true }
     );
@@ -156,10 +160,15 @@ function unlockApp(password) {
 
   gateError.hidden = true;
   sessionStorage.setItem(PASSWORD_STORAGE_KEY, password);
-  gateShell.hidden = true;
-  appShell.hidden = false;
+  showConversationView({
+    gateShell,
+    appShell,
+    messageInput,
+    gatePasswordInput,
+    windowObject: window,
+    documentObject: document
+  });
   init();
-  messageInput.focus();
 }
 
 async function askLive(message, history, pendingEl, voiceEnabled, password) {

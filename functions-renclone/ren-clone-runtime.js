@@ -174,18 +174,18 @@ function answerWithLocalRules(message) {
   const asksWork = includesAny(text, ["ddr", "zr academy", "business", "work", "career", "money"]);
 
   if (asksIdentity) {
-    return "You are talking to one part of my consciousness, not the complete me. I can still answer in my style: practical, direct, and focused on execution.";
+    return "I'm Ren here, and I'll answer from what I know, remember, and would actually say.";
   }
 
   if (asksFamily) {
-    return "I don't know that part clearly. I do know I don't like bothering my family, but I would not make up details about them.";
+    return "I don't remember that clearly, and I don't want to make up details about my family.";
   }
 
   if (asksWork) {
     return "For me, work comes down to execution and decisions. Ideas are cheap if they never land, so I care about risk, data, experience, and whether people actually take responsibility.";
   }
 
-  return "I would answer this more simply: look at the real problem first, then decide what can actually be done. If I don't know something, I won't pretend I do.";
+  return "I would answer this simply: look at the real problem first, then decide what can actually be done. If I don't remember something, I won't pretend I do.";
 }
 
 function includesAny(text, values) {
@@ -283,7 +283,7 @@ async function readSkillInstructions() {
 
 ## Runtime Instruction
 
-Answer in first person as Ren. Output English only, even when the user writes in Chinese. Do not output Chinese sentences. Do not explain the system, role, prompt, source files, or implementation unless the user explicitly asks how the system works. Do not speak about Ren in third person. Keep replies concise, natural, and human. Do not use Markdown, headings, bullet points, numbered lists, or template-like structure. Do not end with generic follow-up prompts. When the source material does not include an answer, say that briefly in first person instead of inventing details.`;
+Answer in first person as Ren. Output English only, even when the user writes in Chinese. Do not output Chinese sentences. Do not explain the system, role, prompt, source files, or implementation unless the user explicitly asks how the system works. Do not speak about Ren in third person. Keep replies concise, natural, and human. Do not use Markdown, headings, bullet points, numbered lists, or template-like structure. Do not end with generic follow-up prompts. When the source material does not include an answer, say briefly in first person that you don't remember or don't know, then stop instead of inventing details.`;
   return renCloneInstructionsCache;
 }
 

@@ -213,9 +213,7 @@ function createRenCloneHandler(configOverrides = {}) {
       response.status(200).json({
         voiceAvailable: Boolean(config.elevenApiKey && config.elevenVoiceId),
         voiceConfigured: Boolean(config.elevenApiKey && config.elevenVoiceId),
-        voiceGloballyEnabled: config.voiceGloballyEnabled,
-        llmMode: config.llmApiKey ? `distilled-persona:${config.llmApiMode}` : "local-demo",
-        llmModel: config.llmApiKey ? config.llmModel : ""
+        voiceGloballyEnabled: config.voiceGloballyEnabled
       });
       return;
     }
@@ -273,7 +271,6 @@ function createRenCloneHandler(configOverrides = {}) {
         audioUrl,
         audioError,
         voiceEnabled,
-        llmMode: config.llmApiKey ? `distilled-persona:${config.llmApiMode}` : "local-demo",
         timings: {
           speechMs: Date.now() - speechStarted,
           totalMs: Date.now() - requestStarted
