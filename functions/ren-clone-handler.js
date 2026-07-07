@@ -12,7 +12,7 @@ let renCloneInstructionsCache = "";
 const REN_CLONE_PASSWORD = "ddrzh";
 const REN_CLONE_MAX_FIELD_LENGTH = 5000;
 const REN_CLONE_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
-const REN_CLONE_MAX_REQUESTS_PER_WINDOW = 12;
+const REN_CLONE_MAX_REQUESTS_PER_WINDOW = 100;
 const REN_CLONE_ALLOWED_ORIGINS = new Set([
   "https://ddrzh.com",
   "https://www.ddrzh.com",

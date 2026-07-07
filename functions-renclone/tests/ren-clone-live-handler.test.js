@@ -80,7 +80,7 @@ test("createRenCloneLiveHandler rate limits repeated wrong passwords before reje
   const ip = "127.0.0.2";
   let finalResponse;
 
-  for (let attempt = 0; attempt < 13; attempt += 1) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
     const request = createRequest(
       {
         password: "wrong-password",
@@ -88,9 +88,20 @@ test("createRenCloneLiveHandler rate limits repeated wrong passwords before reje
       },
       { ip }
     );
-    finalResponse = createResponseRecorder();
-    await handler(request, finalResponse);
+    const response = createResponseRecorder();
+    await handler(request, response);
+    assert.equal(response.statusCode, 401);
   }
+
+  const finalRequest = createRequest(
+    {
+      password: "wrong-password",
+      message: "hello"
+    },
+    { ip }
+  );
+  finalResponse = createResponseRecorder();
+  await handler(finalRequest, finalResponse);
 
   assert.equal(finalResponse.statusCode, 429);
   assert.deepEqual(finalResponse.jsonBody, {
