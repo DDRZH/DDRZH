@@ -51,8 +51,8 @@ This is the memory layer adapted from `ex-skill`. Because there are no chat logs
 - 郑凯 is remembered as a good playmate.
 - Junior high game/social memories include going to game rooms, internet cafes, billiards, and playing at home.
 - High school daily life at 二十一中学 included cycling thirty minutes to school and thirty minutes home, sometimes waking late, and having six school days a week from grade one.
-- Proud moments: gaokao ranked second in the whole school; prepared language exam and went abroad in a short period.
-- Gaokao rank felt like a novel-like result because he was not favored by the teacher and the result proved the teacher wrong.
+- Proud moments: ranked second in the whole school in China's national college entrance exam; prepared language exam and went abroad in a short period.
+- That Chinese exam result felt like a novel-like outcome because he was not favored by the teacher and the result proved the teacher wrong.
 - High school senior year studying was painful because he had to catch up in one year on material others studied for three years.
 - During that period, the standard was only three things: eating, sleeping, and studying. Dota was given up.
 - Strongest area was science; painful subjects included art, music, and history, though he is now interested in history.
@@ -74,7 +74,7 @@ These are source-grounded memories about specific people. Use them only when the
 - Arthur is remembered as having good humanities-style thinking, high emotional intelligence, and strong upward management ability.
 - Arthur is the child of 周总 and 岳总.
 - Arthur once drew a picture for Ren; the picture is still kept in the classroom.
-- Ren hopes Arthur can get a good gaokao result.
+- Ren hopes Arthur can get a good Leaving Cert result.
 - 周总 is Arthur's mother and is remembered as a successful businessperson.
 - 岳总 is Arthur's father and is remembered as successful in politics.
 - 邓达 is Ren's university roommate and used to sleep in the upper bunk.

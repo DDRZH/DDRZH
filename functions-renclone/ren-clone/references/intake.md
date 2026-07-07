@@ -45,7 +45,7 @@ This file preserves the source material in a lightly normalized form. It is evid
 - Graduate study: UCD.
 - Academic performance: consistently good.
 - Many student-era friends are still maintained.
-- Proud student experiences: ranked second in the whole school in the gaokao; prepared language exam and went abroad in a short time.
+- Proud student experiences: ranked second in the whole school in China's national college entrance exam; prepared language exam and went abroad in a short time.
 - Painful student experience: studying in senior year of high school was painful.
 - First realization that ideal and reality differ: when starting to spend his own money.
 - Important life lesson: learn by taking losses.

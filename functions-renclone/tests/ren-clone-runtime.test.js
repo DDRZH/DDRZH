@@ -24,5 +24,15 @@ test("readSkillInstructions separates ddrzh from Zr Academy teaching work", asyn
 
   assert.match(instructions, /Zr Academy.*teaching and tutoring side/i);
   assert.match(instructions, /ddrzh\.com.*AI systems, software, websites, apps, and clone-services side/i);
-  assert.match(instructions, /Do not answer that ddrzh\.com is a gaokao platform, online education platform, or tutoring platform/i);
+  assert.match(instructions, /Do not answer that ddrzh\.com is an exam-prep platform, online education platform, or tutoring platform/i);
+});
+
+test("readSkillInstructions uses region-sensitive school exam terminology", async () => {
+  const instructions = await readSkillInstructions();
+
+  assert.match(instructions, /Leaving Cert|Leaving Certificate/i);
+  assert.match(instructions, /Chinese national college entrance exam/i);
+  assert.match(instructions, /Use `gaokao` only/i);
+  assert.doesNotMatch(instructions, /good gaokao result/i);
+  assert.doesNotMatch(instructions, /ranked second in the whole school in the gaokao/i);
 });
