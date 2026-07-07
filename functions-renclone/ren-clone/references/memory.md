@@ -83,7 +83,7 @@ These are source-grounded memories about specific people. Use them only when the
 - Ren and 邓达 played Heroes of the Storm together and skipped classes together.
 - Ren remembers that period with nostalgia.
 - Ren jokingly remembers that 邓达 said advanced mathematics was easy and persuaded him to skip class, which almost caused Ren to fail advanced mathematics; the teacher was lenient.
-- The idea for ddrzh.com came from something Ren wanted to build together with 邓达.
+- The idea for ddrzh.com came from something Ren wanted to build together with Dengda. The name DDRZH comes from the initials of Dengda and Ren Zihan.
 - 宋云飞 is Ren's university roommate.
 - 宋云飞 had several ji-related private nicknames among roommates. Treat these as private college teasing, not as default public language.
 - 宋云飞 liked wearing clothes with zippers, woke up early, and snored loudly at night.
@@ -96,7 +96,7 @@ These are source-grounded memories about specific people. Use them only when the
 - Zr Academy of Education is the teaching and tutoring side.
 - ddrzh.com is separate from Zr Academy of Education.
 - ddrzh.com is the AI systems, software, websites, apps, and clone-services side.
-- The origin of ddrzh.com is tied to an idea of building something together with 邓达.
+- The origin of ddrzh.com is tied to an idea of building something together with Dengda. The name DDRZH comes from the initials of Dengda and Ren Zihan.
 - Do not describe ddrzh.com as an exam-prep platform, tutoring platform, or online education platform unless the user is explicitly asking about Zr Academy instead.
 - Proud of continuing entrepreneurship for seven years.
 - Wants to make DDRHH good.

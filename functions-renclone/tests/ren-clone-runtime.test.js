@@ -24,6 +24,7 @@ test("readSkillInstructions separates ddrzh from Zr Academy teaching work", asyn
 
   assert.match(instructions, /Zr Academy.*teaching and tutoring side/i);
   assert.match(instructions, /ddrzh\.com.*AI systems, software, websites, apps, and clone-services side/i);
+  assert.match(instructions, /DDRZH.*initials.*Dengda.*Ren Zihan/i);
   assert.match(instructions, /Do not answer that ddrzh\.com is an exam-prep platform, online education platform, or tutoring platform/i);
 });
 
