@@ -197,6 +197,18 @@ function unlockApp(password) {
 }
 
 async function askLive(message, history, pendingEl, voiceEnabled, password) {
+  if (voiceEnabled && !activeAudioQueue && typeof AudioQueue === "function") {
+    try {
+      activeAudioQueue = new AudioQueue();
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? `Audio playback failed: ${error.message}`
+          : "Audio playback is unavailable in this browser.";
+      appendAudioError(pendingEl, message);
+    }
+  }
+
   const response = await fetch(API_URL_LIVE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
