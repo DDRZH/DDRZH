@@ -111,6 +111,7 @@ test("createRenCloneLiveHandler rate limits repeated wrong passwords before reje
 });
 
 test("createRenCloneLiveHandler streams text-only mode when voice is disabled", async () => {
+  const infoLogs = [];
   const handler = createRenCloneLiveHandler(
     {
       llmApiKey: () => "key",
@@ -120,6 +121,14 @@ test("createRenCloneLiveHandler streams text-only mode when voice is disabled", 
       voiceEnabled: () => "false"
     },
     {
+      logger: {
+        info(message, metadata) {
+          infoLogs.push({ message, metadata });
+        },
+        warn() {},
+        error() {},
+        debug() {}
+      },
       createLlmStreamer: () => ({
         async *stream() {
           yield "Hello";
@@ -141,4 +150,12 @@ test("createRenCloneLiveHandler streams text-only mode when voice is disabled", 
   const output = (response.chunks || []).join("");
   assert.match(output, /event: token/);
   assert.match(output, /event: done/);
+  assert(infoLogs.some((entry) => entry.message === "ren_clone_live_request_started"));
+  assert(
+    infoLogs.some(
+      (entry) =>
+        entry.message === "ren_clone_live_session_created" &&
+        entry.metadata?.wantsVoice === false
+    )
+  );
 });

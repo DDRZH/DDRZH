@@ -257,15 +257,24 @@ async function askLive(message, history, pendingEl, voiceEnabled, password) {
             answer += token;
             textStream.push(token);
           } else if (parsed.event === "audio") {
-            if (!activeAudioQueue) {
-              if (typeof AudioQueue !== "function") {
-                audioError = "Audio playback is unavailable in this browser.";
-                appendAudioError(pendingEl, audioError);
-                continue;
+            try {
+              if (!activeAudioQueue) {
+                if (typeof AudioQueue !== "function") {
+                  audioError = "Audio playback is unavailable in this browser.";
+                  appendAudioError(pendingEl, audioError);
+                  continue;
+                }
+                activeAudioQueue = new AudioQueue();
               }
-              activeAudioQueue = new AudioQueue();
+              activeAudioQueue.enqueue(parsed.data.chunk);
+            } catch (error) {
+              audioError =
+                error instanceof Error && error.message
+                  ? `Audio playback failed: ${error.message}`
+                  : "Audio playback failed in this browser.";
+              appendAudioError(pendingEl, audioError);
+              stopActiveStreams();
             }
-            activeAudioQueue.enqueue(parsed.data.chunk);
           } else if (parsed.event === "audioError") {
             audioError = parsed.data.message || "";
             appendAudioError(pendingEl, audioError);

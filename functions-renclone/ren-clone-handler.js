@@ -2,11 +2,13 @@ require("dotenv").config();
 
 const path = require("node:path");
 const { mkdir, writeFile } = require("node:fs/promises");
-const crypto = require("node:crypto");
+const { randomBytes, randomUUID } = require("node:crypto");
+const functionsLogger = require("firebase-functions/logger");
 const {
   answerWithLocalRules,
   applyRenCloneRequestGate,
   containsCjk,
+  getClientIp,
   getRuntimeConfig,
   normalizeText,
   readSkillInstructions,
@@ -14,6 +16,7 @@ const {
   sendEvent,
   shouldUseVoice
 } = require("./ren-clone-runtime");
+const { createRequestLogger, errorMetadata } = require("./logger");
 
 const audioDir = process.env.REN_CLONE_AUDIO_DIR || path.join("/tmp", "ren-clone-audio");
 
@@ -198,14 +201,23 @@ async function createSpeech(text, config) {
   }
 
   const buffer = Buffer.from(await response.arrayBuffer());
-  const filename = `${Date.now()}-${crypto.randomBytes(5).toString("hex")}.mp3`;
+  const filename = `${Date.now()}-${randomBytes(5).toString("hex")}.mp3`;
   await writeFile(path.join(audioDir, filename), buffer);
   return `audio/${filename}`;
 }
 
-function createRenCloneHandler(configOverrides = {}) {
+function createRenCloneHandler(configOverrides = {}, deps = {}) {
+  const baseLogger = deps.logger || functionsLogger;
+  const answerWithLlmImpl = deps.answerWithLLM || answerWithLLM;
+  const createSpeechImpl = deps.createSpeech || createSpeech;
   return async function handleRenCloneRequest(request, response) {
     const config = getRuntimeConfig(configOverrides);
+    const requestContext = {
+      requestId: randomUUID(),
+      route: "renclone",
+      ip: getClientIp(request)
+    };
+    const logger = createRequestLogger(baseLogger, requestContext);
     const gate = applyRenCloneRequestGate({ request, response, allowGet: true });
     if (gate.handled) return;
 
@@ -222,8 +234,17 @@ function createRenCloneHandler(configOverrides = {}) {
     const message = normalizeText(body.message, 3000);
     const history = sanitizeHistory(body.history);
     const voiceEnabled = shouldUseVoice(config.voiceGloballyEnabled, body.voiceEnabled);
+    logger.info("ren_clone_serial_request_started", {
+      method: request.method,
+      historyLength: history.length,
+      voiceEnabled,
+      voiceGloballyEnabled: config.voiceGloballyEnabled,
+      hasElevenCredentials: Boolean(config.elevenApiKey && config.elevenVoiceId),
+      llmApiMode: config.llmApiMode
+    });
 
     if (!message) {
+      logger.warn("ren_clone_serial_request_rejected_empty_message");
       response.status(400).json({ ok: false, message: "Please enter a message." });
       return;
     }
@@ -241,8 +262,12 @@ function createRenCloneHandler(configOverrides = {}) {
 
       const answerStarted = Date.now();
       const answer = config.llmApiKey
-        ? await answerWithLLM(message, history, config)
+        ? await answerWithLlmImpl(message, history, config)
         : answerWithLocalRules(message);
+      logger.info("ren_clone_serial_text_completed", {
+        answerLength: answer.length,
+        answerMs: Date.now() - answerStarted
+      });
 
       if (voiceEnabled) {
         sendEvent(response, "status", {
@@ -260,9 +285,20 @@ function createRenCloneHandler(configOverrides = {}) {
       const speechStarted = Date.now();
       if (voiceEnabled) {
         try {
-          audioUrl = await createSpeech(answer, config);
+          logger.info("ren_clone_serial_voice_started", {
+            answerLength: answer.length
+          });
+          audioUrl = await createSpeechImpl(answer, config);
+          logger.info("ren_clone_serial_voice_succeeded", {
+            speechMs: Date.now() - speechStarted,
+            hasAudioUrl: Boolean(audioUrl)
+          });
         } catch (error) {
           audioError = error instanceof Error ? error.message : "Could not generate audio.";
+          logger.warn("ren_clone_serial_voice_failed", {
+            speechMs: Date.now() - speechStarted,
+            ...errorMetadata(error)
+          });
         }
       }
 
@@ -276,7 +312,14 @@ function createRenCloneHandler(configOverrides = {}) {
           totalMs: Date.now() - requestStarted
         }
       });
+      logger.info("ren_clone_serial_request_finished", {
+        totalMs: Date.now() - requestStarted,
+        voiceEnabled,
+        hasAudioUrl: Boolean(audioUrl),
+        hasAudioError: Boolean(audioError)
+      });
     } catch (error) {
+      logger.error("ren_clone_serial_request_failed", errorMetadata(error));
       sendEvent(response, "error", {
         error: error instanceof Error ? error.message : "Unexpected server error."
       });

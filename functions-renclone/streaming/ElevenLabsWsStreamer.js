@@ -11,11 +11,13 @@ const DEFAULT_GENERATION_CONFIG = {
 };
 
 class ElevenLabsWsStreamer extends EventEmitter {
-  constructor({ apiKey, voiceId, modelId, createWs } = {}) {
+  constructor({ apiKey, voiceId, modelId, createWs, logger, requestContext } = {}) {
     super();
     this.apiKey = apiKey;
     this.voiceId = voiceId;
     this.modelId = modelId;
+    this.logger = logger;
+    this.requestContext = requestContext || {};
     this.createWs =
       createWs ||
       ((url) => {
@@ -27,6 +29,10 @@ class ElevenLabsWsStreamer extends EventEmitter {
 
   connect() {
     const url = buildStreamUrl(this.voiceId, this.modelId);
+    this.#log("debug", "ren_clone_eleven_ws_connecting", {
+      modelId: this.modelId,
+      hasVoiceId: Boolean(this.voiceId)
+    });
 
     return new Promise((resolve, reject) => {
       let settled = false;
@@ -36,6 +42,9 @@ class ElevenLabsWsStreamer extends EventEmitter {
 
       const handleOpen = () => {
         opened = true;
+        this.#log("info", "ren_clone_eleven_ws_opened", {
+          modelId: this.modelId
+        });
 
         try {
           this.socket.send(
@@ -69,21 +78,27 @@ class ElevenLabsWsStreamer extends EventEmitter {
         }
 
         if (payload.isFinal === true) {
+          this.#log("debug", "ren_clone_eleven_ws_final");
           this.emit("final", payload.isFinal);
         }
 
         if (payload.error) {
+          this.#log("warn", "ren_clone_eleven_ws_error_payload", {
+            errorMessage: payload.error
+          });
           emitError(this, createProtocolError(payload.error));
         }
       };
 
       const handleError = (error) => {
         if (!opened && !settled) {
+          this.#log("warn", "ren_clone_eleven_ws_connect_failed", this.#errorMetadata(error));
           settled = true;
           reject(error);
           return;
         }
 
+        this.#log("warn", "ren_clone_eleven_ws_transport_error", this.#errorMetadata(error));
         emitError(this, normalizeError(error, "ElevenLabs WebSocket error."));
       };
 
@@ -111,6 +126,23 @@ class ElevenLabsWsStreamer extends EventEmitter {
     if (this.socket) {
       this.socket.close();
     }
+  }
+
+  #log(level, message, metadata = {}) {
+    const method = this.logger?.[level];
+    if (typeof method !== "function") return;
+    method(message, {
+      ...this.requestContext,
+      ...metadata
+    });
+  }
+
+  #errorMetadata(error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    return {
+      errorMessage: err.message,
+      errorName: err.name
+    };
   }
 }
 

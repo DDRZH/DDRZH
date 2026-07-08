@@ -77,3 +77,49 @@ test("createRenCloneHandler GET config does not expose model or prompt details",
   assert.equal("llmMode" in response.jsonBody, false);
   assert.equal("llmModel" in response.jsonBody, false);
 });
+
+test("createRenCloneHandler logs voice generation failure on the serial TTS path", async () => {
+  const warnLogs = [];
+  const handler = createRenCloneHandler(
+    {
+      voiceEnabled: () => "true"
+    },
+    {
+      logger: {
+        info() {},
+        warn(message, metadata) {
+          warnLogs.push({ message, metadata });
+        },
+        error() {},
+        debug() {}
+      },
+      answerWithLLM: async () => "Hello from Ren",
+      createSpeech: async () => {
+        throw new Error("serial voice failed");
+      }
+    }
+  );
+  const request = createRequest({
+    method: "POST",
+    body: {
+      password: "ddrzh",
+      message: "hello",
+      history: [],
+      voiceEnabled: true
+    }
+  });
+  const response = createResponseRecorder();
+
+  await handler(request, response);
+
+  const output = (response.chunks || []).join("");
+  assert.match(output, /event: done/);
+  assert.match(output, /serial voice failed/);
+  assert(
+    warnLogs.some(
+      (entry) =>
+        entry.message === "ren_clone_serial_voice_failed" &&
+        entry.metadata?.errorMessage === "serial voice failed"
+    )
+  );
+});
