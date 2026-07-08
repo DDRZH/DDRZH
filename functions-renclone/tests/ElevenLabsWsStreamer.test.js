@@ -56,7 +56,7 @@ test("ElevenLabsWsStreamer sends handshake, text payloads, and emits transport e
   assert.equal(sockets.length, 1);
   assert.equal(
     sockets[0].url,
-    "wss://api.elevenlabs.io/v1/text-to-speech/voice%2F123/stream-input?model_id=eleven%20flash%2Fv2.5&output_format=pcm_24000"
+    "wss://api.elevenlabs.io/v1/text-to-speech/voice%2F123/stream-input?model_id=eleven%20flash%2Fv2.5&output_format=mp3_44100_128"
   );
   assert.deepEqual(sockets[0].sent[0], {
     text: " ",

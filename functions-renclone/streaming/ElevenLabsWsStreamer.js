@@ -156,7 +156,7 @@ function attachSocketListener(socket, eventName, handler) {
 }
 
 function buildStreamUrl(voiceId, modelId) {
-  return `wss://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}/stream-input?model_id=${encodeURIComponent(modelId)}&output_format=pcm_24000`;
+  return `wss://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voiceId)}/stream-input?model_id=${encodeURIComponent(modelId)}&output_format=mp3_44100_128`;
 }
 
 function emitError(streamer, error) {

@@ -17,8 +17,7 @@ const voiceToggle = document.querySelector("#voiceToggle");
 const voiceHint = document.querySelector("#voiceHint");
 
 const conversationHistory = [];
-let activeAudio = null;
-let activeAudioQueue = null;
+let activeAudioPlayer = null;
 let activeTextStream = null;
 let config = {
   voiceAvailable: false,
@@ -197,9 +196,9 @@ function unlockApp(password) {
 }
 
 async function askLive(message, history, pendingEl, voiceEnabled, password) {
-  if (voiceEnabled && !activeAudioQueue && typeof AudioQueue === "function") {
+  if (voiceEnabled && !activeAudioPlayer && typeof Mp3StreamPlayer === "function") {
     try {
-      activeAudioQueue = new AudioQueue();
+      activeAudioPlayer = new Mp3StreamPlayer();
     } catch (error) {
       const message =
         error instanceof Error && error.message
@@ -270,22 +269,22 @@ async function askLive(message, history, pendingEl, voiceEnabled, password) {
             textStream.push(token);
           } else if (parsed.event === "audio") {
             try {
-              if (!activeAudioQueue) {
-                if (typeof AudioQueue !== "function") {
+              if (!activeAudioPlayer) {
+                if (typeof Mp3StreamPlayer !== "function") {
                   audioError = "Audio playback is unavailable in this browser.";
                   appendAudioError(pendingEl, audioError);
                   continue;
                 }
-                activeAudioQueue = new AudioQueue();
+                activeAudioPlayer = new Mp3StreamPlayer();
               }
-              activeAudioQueue.enqueue(parsed.data.chunk);
+              activeAudioPlayer.appendChunk(parsed.data.chunk);
             } catch (error) {
               audioError =
                 error instanceof Error && error.message
                   ? `Audio playback failed: ${error.message}`
                   : "Audio playback failed in this browser.";
               appendAudioError(pendingEl, audioError);
-              stopActiveStreams();
+              stopActiveAudioPlayback();
             }
           } else if (parsed.event === "audioError") {
             audioError = parsed.data.message || "";
@@ -295,6 +294,7 @@ async function askLive(message, history, pendingEl, voiceEnabled, password) {
             return;
           } else if (parsed.event === "done") {
             answer = parsed.data.answer || answer;
+            activeAudioPlayer?.finish();
             reader.cancel().catch(() => {});
             finish();
             return;
@@ -436,18 +436,17 @@ function setLoading(isLoading) {
 }
 
 function stopActiveStreams() {
-  if (activeAudio) {
-    activeAudio.pause();
-    activeAudio = null;
-  }
-  if (activeAudioQueue) {
-    activeAudioQueue.stop();
-    activeAudioQueue = null;
-  }
+  stopActiveAudioPlayback();
   if (activeTextStream) {
     activeTextStream.stop();
     activeTextStream = null;
   }
+}
+
+function stopActiveAudioPlayback() {
+  if (!activeAudioPlayer) return;
+  activeAudioPlayer.stop();
+  activeAudioPlayer = null;
 }
 
 function friendlyAudioError(message) {
