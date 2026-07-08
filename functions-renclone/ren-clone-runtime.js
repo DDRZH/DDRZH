@@ -12,14 +12,14 @@ const REN_CLONE_ALLOWED_ORIGINS = new Set([
   "https://ddrzh.com",
   "https://www.ddrzh.com",
   "https://ddrzh-31cb8.web.app",
-  "http://localhost:4173",
-  "http://127.0.0.1:4173",
-  "http://localhost:8000",
-  "http://127.0.0.1:8000",
-  "http://localhost:3000",
-  "http://127.0.0.1:3000",
   "http://124.220.32.120"
 ]);
+const REN_CLONE_ALLOWED_ORIGIN_PATTERNS = [
+  /^https:\/\/ddrzh-31cb8(?:--[a-z0-9-]+)?\.web\.app$/i,
+  /^https:\/\/ddrzh-31cb8(?:--[a-z0-9-]+)?\.firebaseapp\.com$/i,
+  /^http:\/\/localhost:\d+$/i,
+  /^http:\/\/127\.0\.0\.1:\d+$/i
+];
 
 const renCloneRequestCounts = new Map();
 let renCloneInstructionsCache = "";
@@ -54,8 +54,14 @@ function shouldUseVoice(globalEnabled, requestValue) {
   return globalEnabled && requestValue !== false;
 }
 
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (REN_CLONE_ALLOWED_ORIGINS.has(origin)) return true;
+  return REN_CLONE_ALLOWED_ORIGIN_PATTERNS.some((pattern) => pattern.test(origin));
+}
+
 function setCors(response, origin) {
-  if (origin && REN_CLONE_ALLOWED_ORIGINS.has(origin)) {
+  if (origin && isAllowedOrigin(origin)) {
     response.set("Access-Control-Allow-Origin", origin);
   }
   response.set("Vary", "Origin");
@@ -117,7 +123,7 @@ function applyRenCloneRequestGate({ request, response, allowGet = false, rateLim
     return { handled: true, origin };
   }
 
-  if (origin && !REN_CLONE_ALLOWED_ORIGINS.has(origin)) {
+  if (!isAllowedOrigin(origin)) {
     response.status(403).json({ ok: false, message: "Origin not allowed." });
     return { handled: true, origin };
   }

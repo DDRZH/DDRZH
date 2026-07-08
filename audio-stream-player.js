@@ -2,11 +2,11 @@ const MP3_MIME_TYPE = "audio/mpeg";
 
 class Mp3StreamPlayer {
   constructor({ windowObject = window, documentObject = document } = {}) {
-    const MediaSourceClass = windowObject.MediaSource;
+    const MediaSourceClass = resolveStreamingMediaSource(windowObject);
     const URLObject = windowObject.URL;
 
     if (!MediaSourceClass || !URLObject?.createObjectURL) {
-      throw new Error("This browser does not support streaming audio playback.");
+      throw new Error(buildUnsupportedPlaybackMessage(windowObject));
     }
 
     if (
@@ -22,6 +22,7 @@ class Mp3StreamPlayer {
     this.audio.autoplay = true;
     this.audio.playsInline = true;
     this.audio.preload = "auto";
+    this.audio.disableRemotePlayback = true;
     this.audio.src = this.URLObject.createObjectURL(this.mediaSource);
 
     this.sourceBuffer = null;
@@ -96,6 +97,25 @@ class Mp3StreamPlayer {
       } catch {}
     }
   }
+}
+
+function resolveStreamingMediaSource(windowObject) {
+  return (
+    windowObject.ManagedMediaSource ||
+    windowObject.MediaSource ||
+    windowObject.WebKitMediaSource ||
+    null
+  );
+}
+
+function buildUnsupportedPlaybackMessage(windowObject) {
+  return [
+    "This browser does not support streaming audio playback.",
+    `MediaSource=${Boolean(windowObject.MediaSource)}`,
+    `ManagedMediaSource=${Boolean(windowObject.ManagedMediaSource)}`,
+    `WebKitMediaSource=${Boolean(windowObject.WebKitMediaSource)}`,
+    `createObjectURL=${Boolean(windowObject.URL?.createObjectURL)}`
+  ].join(" ");
 }
 
 function decodeBase64Chunk(base64Chunk) {

@@ -159,3 +159,47 @@ test("createRenCloneLiveHandler streams text-only mode when voice is disabled", 
     )
   );
 });
+
+test("createRenCloneLiveHandler allows Firebase Hosting preview channel origins", async () => {
+  const handler = createRenCloneLiveHandler(
+    {
+      llmApiKey: () => "key",
+      llmModel: () => "gpt-4.1-mini",
+      llmBaseUrl: () => "https://api.openai.com/v1",
+      llmApiMode: () => "responses",
+      voiceEnabled: () => "false"
+    },
+    {
+      logger: {
+        info() {},
+        warn() {},
+        error() {},
+        debug() {}
+      },
+      createLlmStreamer: () => ({
+        async *stream() {
+          yield "Hello";
+        }
+      })
+    }
+  );
+
+  const request = createRequest(
+    {
+      password: "ddrzh",
+      message: "hello",
+      history: [],
+      voiceEnabled: false
+    },
+    {
+      origin: "https://ddrzh-31cb8--preview-voice.web.app"
+    }
+  );
+  const response = createResponseRecorder();
+
+  await handler(request, response);
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), "https://ddrzh-31cb8--preview-voice.web.app");
+  assert.match((response.chunks || []).join(""), /event: done/);
+});

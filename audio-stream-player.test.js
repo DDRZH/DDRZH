@@ -6,6 +6,8 @@ const vm = require("node:vm");
 
 function loadMp3StreamPlayer({
   MediaSourceClass,
+  ManagedMediaSourceClass,
+  WebKitMediaSourceClass,
   AudioClass,
   URLObject
 }) {
@@ -15,6 +17,8 @@ function loadMp3StreamPlayer({
     exports: {},
     window: {
       MediaSource: MediaSourceClass,
+      ManagedMediaSource: ManagedMediaSourceClass,
+      WebKitMediaSource: WebKitMediaSourceClass,
       URL: URLObject
     },
     document: {
@@ -122,6 +126,8 @@ const FakeURL = {
 test("Mp3StreamPlayer appends queued chunks once the media source opens", async () => {
   const Mp3StreamPlayer = loadMp3StreamPlayer({
     MediaSourceClass: FakeMediaSource,
+    ManagedMediaSourceClass: undefined,
+    WebKitMediaSourceClass: undefined,
     AudioClass: FakeAudioElement,
     URLObject: FakeURL
   });
@@ -144,6 +150,8 @@ test("Mp3StreamPlayer appends queued chunks once the media source opens", async 
 test("Mp3StreamPlayer appends subsequent chunks in order", async () => {
   const Mp3StreamPlayer = loadMp3StreamPlayer({
     MediaSourceClass: FakeMediaSource,
+    ManagedMediaSourceClass: undefined,
+    WebKitMediaSourceClass: undefined,
     AudioClass: FakeAudioElement,
     URLObject: FakeURL
   });
@@ -163,6 +171,8 @@ test("Mp3StreamPlayer appends subsequent chunks in order", async () => {
 test("Mp3StreamPlayer stop pauses playback, closes the media source, and revokes the object URL", () => {
   const Mp3StreamPlayer = loadMp3StreamPlayer({
     MediaSourceClass: FakeMediaSource,
+    ManagedMediaSourceClass: undefined,
+    WebKitMediaSourceClass: undefined,
     AudioClass: FakeAudioElement,
     URLObject: FakeURL
   });
@@ -176,4 +186,64 @@ test("Mp3StreamPlayer stop pauses playback, closes the media source, and revokes
   assert.equal(player.audio.pauseCalls, 1);
   assert.equal(mediaSource.readyState, "ended");
   assert.deepEqual(FakeURL.revoked, ["blob:stream"]);
+});
+
+test("Mp3StreamPlayer supports Safari ManagedMediaSource when MediaSource is unavailable", async () => {
+  class FakeManagedMediaSource extends FakeMediaSource {}
+  FakeManagedMediaSource.isTypeSupported = (mimeType) => mimeType === "audio/mpeg";
+
+  const Mp3StreamPlayer = loadMp3StreamPlayer({
+    MediaSourceClass: undefined,
+    ManagedMediaSourceClass: FakeManagedMediaSource,
+    WebKitMediaSourceClass: undefined,
+    AudioClass: FakeAudioElement,
+    URLObject: FakeURL
+  });
+
+  const player = new Mp3StreamPlayer();
+  player.appendChunk(Buffer.from([8, 9]).toString("base64"));
+
+  const mediaSource = player.mediaSource;
+  mediaSource.open();
+  await Promise.resolve();
+
+  assert.equal(player.audio.disableRemotePlayback, true);
+  assert.deepEqual(mediaSource.sourceBuffer.appended, [[8, 9]]);
+});
+
+test("Mp3StreamPlayer supports Safari WebKitMediaSource when standard interfaces are unavailable", async () => {
+  class FakeWebKitMediaSource extends FakeMediaSource {}
+  FakeWebKitMediaSource.isTypeSupported = (mimeType) => mimeType === "audio/mpeg";
+
+  const Mp3StreamPlayer = loadMp3StreamPlayer({
+    MediaSourceClass: undefined,
+    ManagedMediaSourceClass: undefined,
+    WebKitMediaSourceClass: FakeWebKitMediaSource,
+    AudioClass: FakeAudioElement,
+    URLObject: FakeURL
+  });
+
+  const player = new Mp3StreamPlayer();
+  player.appendChunk(Buffer.from([10, 11]).toString("base64"));
+
+  const mediaSource = player.mediaSource;
+  mediaSource.open();
+  await Promise.resolve();
+
+  assert.deepEqual(mediaSource.sourceBuffer.appended, [[10, 11]]);
+});
+
+test("Mp3StreamPlayer reports missing browser capabilities in the error message", () => {
+  const Mp3StreamPlayer = loadMp3StreamPlayer({
+    MediaSourceClass: undefined,
+    ManagedMediaSourceClass: undefined,
+    WebKitMediaSourceClass: undefined,
+    AudioClass: FakeAudioElement,
+    URLObject: {}
+  });
+
+  assert.throws(
+    () => new Mp3StreamPlayer(),
+    /MediaSource=false ManagedMediaSource=false WebKitMediaSource=false createObjectURL=false/
+  );
 });
