@@ -16,9 +16,11 @@ class AudioQueue {
     this.queuedSamples = 0;
     this.currentChunk = null;
     this.currentOffset = 0;
+    this.readCursor = 0;
     this.playbackStarted = false;
     this.stopped = false;
     this.startupBufferSamples = Math.round(AUDIO_SAMPLE_RATE * STARTUP_BUFFER_SECONDS);
+    this.playbackRate = AUDIO_SAMPLE_RATE / this.ctx.sampleRate;
     this.processor.onaudioprocess = (event) => this.#handleAudioProcess(event);
   }
 
@@ -50,6 +52,7 @@ class AudioQueue {
     this.chunks.length = 0;
     this.currentChunk = null;
     this.currentOffset = 0;
+    this.readCursor = 0;
     this.queuedSamples = 0;
     this.ctx.close().catch(() => {});
   }
@@ -74,25 +77,34 @@ class AudioQueue {
 
     let writeIndex = 0;
     while (writeIndex < output.length) {
-      if (!this.currentChunk || this.currentOffset >= this.currentChunk.length) {
+      if (!this.currentChunk || this.readCursor >= this.currentChunk.length) {
         this.currentChunk = this.chunks.shift() || null;
         this.currentOffset = 0;
+        this.readCursor = 0;
         if (!this.currentChunk) break;
       }
 
-      const remainingChunk = this.currentChunk.length - this.currentOffset;
-      const remainingOutput = output.length - writeIndex;
-      const copyLength = Math.min(remainingChunk, remainingOutput);
-
-      output.set(
-        this.currentChunk.subarray(this.currentOffset, this.currentOffset + copyLength),
-        writeIndex
-      );
-
-      this.currentOffset += copyLength;
-      writeIndex += copyLength;
-      this.queuedSamples = Math.max(0, this.queuedSamples - copyLength);
+      output[writeIndex] = this.#readSample();
+      writeIndex += 1;
     }
+  }
+
+  #readSample() {
+    const index = Math.floor(this.readCursor);
+    const nextIndex = Math.min(index + 1, this.currentChunk.length - 1);
+    const fraction = this.readCursor - index;
+    const sample =
+      this.currentChunk[index] + (this.currentChunk[nextIndex] - this.currentChunk[index]) * fraction;
+
+    const nextCursor = this.readCursor + this.playbackRate;
+    const consumed = Math.floor(nextCursor) - Math.floor(this.readCursor);
+    if (consumed > 0) {
+      this.currentOffset += consumed;
+      this.queuedSamples = Math.max(0, this.queuedSamples - consumed);
+    }
+    this.readCursor = nextCursor;
+
+    return sample;
   }
 }
 

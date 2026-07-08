@@ -70,13 +70,14 @@ class FakeGainNode {
 }
 
 class FakeAudioContext {
-  constructor() {
+  constructor(sampleRate = 24000) {
     this.state = "suspended";
     this.resumeCount = 0;
     this.closeCount = 0;
     this.destination = { kind: "destination" };
     this.processor = null;
     this.gainNode = null;
+    this.sampleRate = sampleRate;
   }
 
   resume() {
@@ -157,4 +158,28 @@ test("AudioQueue stop disconnects nodes and closes the audio context", async () 
   assert.equal(queue.ctx.processor.disconnected, true);
   assert.equal(queue.ctx.gainNode.disconnected, true);
   assert.equal(queue.ctx.closeCount, 1);
+});
+
+test("AudioQueue resamples 24k PCM to the audio context sample rate", async () => {
+  class Fake48kAudioContext extends FakeAudioContext {
+    constructor() {
+      super(48000);
+    }
+  }
+
+  const AudioQueue = loadAudioQueue(Fake48kAudioContext);
+  const queue = new AudioQueue();
+  const ramp = new Int16Array([0, 8192, 16384, 24576]);
+  queue.enqueue(Buffer.from(ramp.buffer).toString("base64"));
+  queue.enqueue(pcmChunk(8192, 0.5));
+
+  await Promise.resolve();
+
+  const frame = processFrame(queue.ctx, 8);
+  assert(Math.abs(frame[0] - 0) < 0.01);
+  assert(frame[1] > 0.1 && frame[1] < 0.15);
+  assert(frame[2] > 0.24 && frame[2] < 0.26);
+  assert(frame[3] > 0.36 && frame[3] < 0.40);
+  assert(frame[4] > 0.49 && frame[4] < 0.51);
+  queue.stop();
 });
