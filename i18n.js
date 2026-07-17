@@ -34,6 +34,8 @@
     "Your story can stay present for generations.": "让您的故事陪伴世代传承。",
     "A private, conversational record of the people who matter most — their voice, memories and way of seeing the world.":
       "为最重要的人留下私密、可对话的记录——他们的声音、记忆，以及看待世界的方式。",
+    "Keep the people you love close.": "让您所爱的人，始终陪伴身边。",
+    "A private, conversational archive for their voice, stories and wisdom.": "为他们的声音、故事与智慧建立私密、可对话的珍藏。",
     "Explore Cyber Clone": "探索 Cyber Clone",
     "Start a conversation": "开始交流",
     "What Cyber Clone preserves": "Cyber Clone 所珍藏的内容",
