@@ -1,0 +1,29 @@
+.ai-context/architecture.md
+  s_da1c3ebec8d225::t_62c134addda1d5 1-23
+.ai-context/index.md
+  s_da1c3ebec8d225::t_3358e269a838b6 1-33
+i18n.js
+  s_da1c3ebec8d225::t_bd4662df0d141b 37-38
+index.html
+  s_da1c3ebec8d225::t_88fa6658fa72e8 71-94,96-124
+styles.css
+  s_da1c3ebec8d225::t_f834de0e31924a 223-226,312,315-378,382,384,386,411-412,414,420,451-465,1632-1636,1784-1790,1793-1794,1797-1798
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b8fd22c683d4b90466f14fbae921b6880e45a19c",
+  "prompts": {},
+  "sessions": {
+    "s_da1c3ebec8d225": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6e6a-0a8e-7671-a145-6ed427d6b154",
+        "model": "unknown"
+      },
+      "human_author": "dengda.dd <dengda.dd@bytedance.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
