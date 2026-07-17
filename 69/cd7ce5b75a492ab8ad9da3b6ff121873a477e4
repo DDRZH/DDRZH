@@ -1,0 +1,25 @@
+i18n.js
+  s_da1c3ebec8d225::t_1364d4b53d5cfc 33-51
+index.html
+  s_da1c3ebec8d225::t_f0e685d46720fd 71-72,74,77-98
+styles.css
+  s_da1c3ebec8d225::t_fb3e4eefb33a63 308,310,312-321,323-327,330-335,338-339,341-342,346-347,350,354-385,1552,1700-1702,1705-1707,1710-1711
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "69cd7ce5b75a492ab8ad9da3b6ff121873a477e4",
+  "prompts": {},
+  "sessions": {
+    "s_da1c3ebec8d225": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6e6a-0a8e-7671-a145-6ed427d6b154",
+        "model": "unknown"
+      },
+      "human_author": "dengda.dd <dengda.dd@bytedance.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
