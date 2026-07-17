@@ -30,6 +30,25 @@
 
     "Custom digital products and AI integration": "定制数字产品与 AI 集成",
     "We deliver the future.": "未来，已来。",
+    "Introducing Cyber Clone": "Cyber Clone 重磅推出",
+    "Your story can stay present for generations.": "让您的故事陪伴世代传承。",
+    "A private, conversational record of the people who matter most — their voice, memories and way of seeing the world.":
+      "为最重要的人留下私密、可对话的记录——他们的声音、记忆，以及看待世界的方式。",
+    "Explore Cyber Clone": "探索 Cyber Clone",
+    "Start a conversation": "开始交流",
+    "What Cyber Clone preserves": "Cyber Clone 所珍藏的内容",
+    "Digital legacy preservation": "数字遗产留存",
+    "Save parents' stories, history and voice.": "留存父母的故事、人生经历与声音。",
+    "Capture the memories, expressions and answers that make a life feel personal — in one private place.":
+      "将让一段人生独一无二的记忆、表达与回答，珍藏在一个私密空间中。",
+    "Interactive Memoirs": "互动回忆录",
+    "Record your stories for your great-grandchildren.": "为您的曾孙辈记录下这些故事。",
+    "Let future family members discover a story through a natural conversation, at their own pace.":
+      "让未来的家人通过自然对话，按自己的节奏了解这些故事。",
+    "Generational storytelling": "跨世代叙事",
+    "So the future can ask you questions 100 years from now.": "让 100 年后的未来仍能向您提问。",
+    "Create a thoughtful digital presence that can share your knowledge, values and memories across time.":
+      "创建一个有温度的数字存在，让您的知识、价值观与记忆跨越时间被分享。",
     "DDRZH builds AI systems, Cyber Clones of real people, websites and apps that help you and/or your business.":
       "DDRZH 构建 AI 系统、真实人物的虚拟分身、网站和应用，帮助您或您的工作。",
     "Primary actions": "主要操作",
