@@ -1,0 +1,23 @@
+index.html
+  s_973b713b856cc8::t_776c0cf647a97a 13-15
+styles.css
+  s_973b713b856cc8::t_bb1797dcc27b08 1887-2552
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "daa365d60a4ed48606473949ba5270f78ac57d40",
+  "prompts": {},
+  "sessions": {
+    "s_973b713b856cc8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f72e1-1eca-7da0-8448-ba33d4ec8a0f",
+        "model": "unknown"
+      },
+      "human_author": "dengda.dd <dengda.dd@bytedance.com>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
