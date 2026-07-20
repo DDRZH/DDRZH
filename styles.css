@@ -2412,6 +2412,11 @@ body {
   background: #fff9c4;
 }
 
+.case-preview-metrics strong,
+.case-preview-metrics span {
+  color: var(--ink);
+}
+
 .trial-section {
   width: min(var(--max-width), calc(100% - 48px));
   margin: 0 auto 24px;
