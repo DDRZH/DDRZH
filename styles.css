@@ -1746,6 +1746,24 @@ h3 {
 }
 
 @media (max-width: 560px) {
+  .hero-content,
+  .cyber-clone-spotlight {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .cyber-clone-spotlight {
+    transform: rotate(0.5deg);
+  }
+
+  .cyber-clone-heading h2,
+  .cyber-clone-heading p,
+  .hero-promise h3,
+  .hero-promise p,
+  .hero-promise-detail {
+    overflow-wrap: anywhere;
+  }
+
   .hero {
     min-height: auto;
     background: #071211;
@@ -1832,7 +1850,7 @@ h3 {
 
   .gdpr-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
   .gdpr-actions .button {
@@ -1909,6 +1927,7 @@ body {
   color: var(--ink);
   font-family: "Patrick Hand", cursive;
   font-size: 1.08rem;
+  overflow-x: hidden;
 }
 
 .site-header,
@@ -2498,15 +2517,18 @@ body {
   }
 
   .hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(calc(100% - 40px), var(--max-width));
     padding-top: 112px;
   }
 
   .section {
+    width: min(calc(100% - 40px), var(--max-width));
     padding: 80px 0;
   }
 
   .trial-section {
-    width: min(100% - 40px, var(--max-width));
+    width: min(calc(100% - 40px), var(--max-width));
     padding: 34px;
   }
 }
@@ -2517,7 +2539,9 @@ body {
   }
 
   .hero h1 {
-    font-size: clamp(3rem, 15vw, 4.8rem);
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-size: clamp(2.7rem, 13vw, 3.6rem);
   }
 
   .hero-inner {
