@@ -13,6 +13,23 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine whether Functions changed
+        id: scope
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" || -z "$BEFORE_SHA" || "$BEFORE_SHA" == "0000000000000000000000000000000000000000" ]]; then
+            DEPLOY_FUNCTIONS=true
+          elif git diff --quiet "$BEFORE_SHA" "$GITHUB_SHA" -- functions-renclone firebase.json; then
+            DEPLOY_FUNCTIONS=false
+          else
+            DEPLOY_FUNCTIONS=true
+          fi
+          echo "deploy_functions=$DEPLOY_FUNCTIONS" >> "$GITHUB_OUTPUT"
+          echo "Deploy Functions: $DEPLOY_FUNCTIONS"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -20,6 +37,7 @@ jobs:
           node-version: 22
 
       - name: Install Functions dependencies
+        if: steps.scope.outputs.deploy_functions == 'true'
         run: npm ci
         working-directory: functions-renclone
 
@@ -27,13 +45,19 @@ jobs:
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DDRZH_31CB8 }}
         run: |
+          if [[ -z "$FIREBASE_SA" ]]; then
+            echo "::error::Firebase service account secret is missing."
+            exit 1
+          fi
           printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/firebase-sa.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
 
       - name: Set up Google Cloud CLI
+        if: steps.scope.outputs.deploy_functions == 'true'
         uses: google-github-actions/setup-gcloud@v2
 
       - name: Deploy renclone functions
+        if: steps.scope.outputs.deploy_functions == 'true'
         run: |
           set +e
           LOG="$RUNNER_TEMP/firebase-functions-deploy.log"
@@ -58,6 +82,7 @@ jobs:
           exit $STATUS
 
       - name: Wait for renclone functions to become active
+        if: steps.scope.outputs.deploy_functions == 'true'
         run: |
           set -euo pipefail
           gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
