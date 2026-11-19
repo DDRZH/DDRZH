@@ -6,6 +6,8 @@
       "firebase.deploy.json",
       "SECURE_CONTACT_DEPLOY.md",
       "functions/**",
+      "functions-renclone/**",
+      "docs/**",
       "print-exports/**",
       "ren-zihan-name-card.html",
       "ren-zihan-name-card-preview.png",
